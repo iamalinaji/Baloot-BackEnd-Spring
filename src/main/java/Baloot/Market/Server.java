@@ -1,4 +1,4 @@
-package Market;
+package Baloot.Market;
 
 import io.javalin.Javalin;
 import org.jsoup.Jsoup;

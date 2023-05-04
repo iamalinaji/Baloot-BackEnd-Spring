@@ -1,4 +1,4 @@
-package Market.Controller;
+package Baloot.Controller;
 
 
 
@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class BalootApplication {
+public class HelloController {
 
-    @GetMapping("/hello")
+    @GetMapping("/")
     public String hello() {
         return "Hello, World!";
     }

@@ -1,4 +1,4 @@
-package Market;
+package Baloot.Market;
 
 public class App {
     public static void main(String[] args) {

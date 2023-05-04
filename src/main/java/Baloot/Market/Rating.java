@@ -1,4 +1,4 @@
-package Market;
+package Baloot.Market;
 
 public class Rating {
     private final String username;
