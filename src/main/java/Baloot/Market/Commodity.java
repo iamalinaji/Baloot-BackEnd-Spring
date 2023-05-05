@@ -14,7 +14,6 @@ public class Commodity {
     private float rating;
     private int inStock;
     private final ArrayList<Category> categories;
-
     private final String imageUrl;
     public Commodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock,String imageUrl) {
         this.id = id;
@@ -70,10 +69,12 @@ public class Commodity {
         JSONObject obj = new JSONObject();
         obj.put("id", id);
         obj.put("name", name);
+        obj.put("providerId", providerId);
         obj.put("price", price);
         obj.put("categories", categories.toString());
         obj.put("rating", rating);
         if (withInStock) obj.put("inStock", inStock);
+        obj.put("imageUrl", imageUrl);
         return obj;
     }
 

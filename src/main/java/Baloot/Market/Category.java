@@ -24,4 +24,12 @@ public enum Category {
 
         return c.orElse(Unknown);
     }
+    public Category getCategoryFromString(String categoryString) {
+        for (Category category : Category.values()) {
+            if (category.val.equalsIgnoreCase(categoryString)) {
+                return category;
+            }
+        }
+        return Category.Unknown;
+    }
 }

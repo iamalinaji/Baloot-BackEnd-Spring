@@ -561,6 +561,14 @@ public class MarketManager {
         }
         return discount.getPercent();
     }
+    public List<JSONObject> commoditiesToJsonList(List <Commodity> commodities){
+        List <JSONObject> commoditiesInJson = new ArrayList<>();
+        for (Commodity commodity : commodities) {
+            JSONObject commodityJson = commodity.toJsonObject(true);
+            commoditiesInJson.add(commodityJson);
+        }
+        return commoditiesInJson;
+    }
 
 
 }
