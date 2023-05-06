@@ -6,6 +6,7 @@ import Baloot.Market.MarketManager;
 import org.json.simple.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -21,6 +22,16 @@ public class CommodityController {
         List<JSONObject> commodityJsonList = market.commoditiesToJsonList(commodities);
         return ResponseEntity.ok(commodityJsonList);
     }
+    @GetMapping("/commodities/{commodity_id}")
+    public ResponseEntity<Commodity> getCommodityById(@PathVariable("commodity_id") int commodityId) {
+        MarketManager market = MarketManager.getInstance();
+        Commodity commodity = market.getCommodityById(commodityId);
+        if (commodity == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(commodity);
+    }
+
     @GetMapping("/commodities/search-by-name")
     public ResponseEntity<List<JSONObject>> searchByName(@RequestParam String name) {
         MarketManager market = MarketManager.getInstance();

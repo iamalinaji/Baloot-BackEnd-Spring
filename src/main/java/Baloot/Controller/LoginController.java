@@ -15,11 +15,8 @@ public class LoginController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String password = request.get("password");
-
-        // Check username and password and perform login logic here
-        boolean loggedIn = performLogin(username, password);
-
-        if (loggedIn) {
+        MarketManager market = MarketManager.getInstance();
+        if (market.login(username,password)) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             return ResponseEntity.ok().body(response);
@@ -32,8 +29,9 @@ public class LoginController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> checkLogin(HttpServletRequest request) {
-        if (isLoggedIn(request)) {
+    public ResponseEntity<Map<String, Object>> checkLogin() {
+        MarketManager market = MarketManager.getInstance();
+        if (market.isUserLoggedIn()) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             return ResponseEntity.ok().body(response);
@@ -45,13 +43,5 @@ public class LoginController {
         }
     }
 
-    private boolean isLoggedIn(HttpServletRequest request) {
-        MarketManager marketManager = MarketManager.getInstance();
-        return marketManager.isUserLoggedIn();
-    }
 
-    private boolean performLogin(String username, String password) {
-        MarketManager marketManager = MarketManager.getInstance();
-        return  marketManager.login(username, password);
-    }
 }
