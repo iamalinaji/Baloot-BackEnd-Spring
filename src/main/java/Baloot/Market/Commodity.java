@@ -11,11 +11,13 @@ public class Commodity {
     private final String name;
     private final int providerId;
     private final int price;
+    private ArrayList<Rating> ratings;
     private float rating;
     private int inStock;
     private final ArrayList<Category> categories;
     private final String imageUrl;
-    public Commodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock,String imageUrl) {
+
+    public Commodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) {
         this.id = id;
         this.name = name;
         this.providerId = providerId;
@@ -24,6 +26,7 @@ public class Commodity {
         this.inStock = inStock;
         this.categories = categories;
         this.imageUrl = imageUrl;
+        ratings = new ArrayList<>();
     }
 
     public int getId() {
@@ -38,8 +41,25 @@ public class Commodity {
         return inStock;
     }
 
-    public void updateRating(float rating) {
-        this.rating = rating;
+    public void updateRating() {
+        float sum = 0;
+        for (Rating rating : ratings) {
+            sum += rating.getScore();
+        }
+        rating = sum / ratings.size();
+    }
+
+    public void addRating(int score, String username) {
+        for (Rating rating : ratings) {
+            if (rating.getUsername().equals(username)) {
+                rating.updateScore(score);
+                updateRating();
+                return;
+            }
+        }
+        Rating rating = new Rating(username, id, score);
+        ratings.add(rating);
+        updateRating();
     }
 
     public List<Category> getCategories() {
@@ -58,24 +78,18 @@ public class Commodity {
         return rating;
     }
 
+    public ArrayList<Rating> getRatings() {
+        return ratings;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
     public void buy() throws RuntimeException {
         if (inStock == 0) {
             throw new RuntimeException("Not enough in stock");
         }
         inStock--;
     }
-
-    public JSONObject toJsonObject(boolean withInStock) {
-        JSONObject obj = new JSONObject();
-        obj.put("id", id);
-        obj.put("name", name);
-        obj.put("providerId", providerId);
-        obj.put("price", price);
-        obj.put("categories", categories.toString());
-        obj.put("rating", rating);
-        if (withInStock) obj.put("inStock", inStock);
-        obj.put("imageUrl", imageUrl);
-        return obj;
-    }
-
 }

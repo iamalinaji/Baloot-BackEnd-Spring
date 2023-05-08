@@ -6,11 +6,13 @@ public class Provider {
     private final int id;
     private final String name;
     private final Date registryDate;
+    private final String imageUrl;
 
-    public Provider(int id, String name, Date registryDate) {
+    public Provider(int id, String name, Date registryDate, String imageUrl) {
         this.id = id;
         this.name = name;
         this.registryDate = registryDate;
+        this.imageUrl = imageUrl;
     }
 
     public int getId() {
@@ -23,5 +25,9 @@ public class Provider {
 
     public Date getRegistryDate() {
         return registryDate;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

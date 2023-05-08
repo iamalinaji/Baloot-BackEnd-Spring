@@ -12,7 +12,6 @@ public class User {
     private Date birthDay;
     private String address;
     private int credit;
-
     private final ArrayList<Integer> buyList = new ArrayList<>();
     private final ArrayList<Integer> purchasedList = new ArrayList<>();
 
@@ -76,8 +75,8 @@ public class User {
         return username;
     }
 
-    public String getPassword() {
-        return password;
+    public boolean checkPassword(String password) {
+        return this.password.equals(password);
     }
 
     public String getEmail() {

@@ -3,6 +3,7 @@ package Baloot.Market;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -10,7 +11,6 @@ public class MarketManager {
     private final ArrayList<User> users = new ArrayList<>();
     private final ArrayList<Provider> providers = new ArrayList<>();
     private final ArrayList<Commodity> commodities = new ArrayList<>();
-    private final ArrayList<Rating> ratings = new ArrayList<>();
     private final ArrayList<Comment> comments = new ArrayList<>();
     private final ArrayList<Discount> discounts = new ArrayList<>();
     private static MarketManager marketManagerInstance = null;
@@ -31,12 +31,25 @@ public class MarketManager {
 
     public boolean login(String username, String password) throws RuntimeException {
         User user = findUserByUsername(username);
-        if (user == null || !user.getPassword().equals(password)) {
+        if (user == null || !user.checkPassword(password)) {
             throw new RuntimeException("Invalid username or password");
         } else {
             loggedInUser = username;
             return true;
         }
+    }
+
+    public boolean signup(String username, String password, String email, String address, String birthday) throws RuntimeException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date birthDate;
+        try {
+            birthDate = dateFormat.parse(birthday);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        addUser(username, password, email, birthDate, address, 0);
+        loggedInUser = username;
+        return true;
     }
 
     public boolean logout() {
@@ -51,7 +64,6 @@ public class MarketManager {
         users.clear();
         providers.clear();
         commodities.clear();
-        ratings.clear();
         comments.clear();
         loggedInUser = "";
     }
@@ -72,17 +84,18 @@ public class MarketManager {
                 addUser(username, password, email, birthDate, address, credit);
             }
 
-            String providersJson = HttpRequest.getHttpResponse("http://5.253.25.110:5000/api/providers");
+            String providersJson = HttpRequest.getHttpResponse("http://5.253.25.110:5000/api/v2/providers");
             JSONArray providersArray = JsonParser.parseJsonArray(providersJson);
             for (Object obj : providersArray) {
                 JSONObject jsonObject = (JSONObject) obj;
                 int id = (int) (long) jsonObject.get("id");
                 String name = (String) jsonObject.get("name");
+                String imageUrl = (String) jsonObject.get("image");
                 Date registryDate = dateFormat.parse((String) jsonObject.get("registryDate"));
-                addProvider(id, name, registryDate);
+                addProvider(id, name, registryDate, imageUrl);
             }
 
-            String commoditiesJson = HttpRequest.getHttpResponse("http://5.253.25.110:5000/api/commodities");
+            String commoditiesJson = HttpRequest.getHttpResponse("http://5.253.25.110:5000/api/v2/commodities");
             JSONArray commoditiesArray = JsonParser.parseJsonArray(commoditiesJson);
             for (Object obj : commoditiesArray) {
                 JSONObject jsonObject = (JSONObject) obj;
@@ -94,7 +107,7 @@ public class MarketManager {
                 float rating = (float) (double) jsonObject.get("rating");
                 int inStock = (int) (long) jsonObject.get("inStock");
                 String imageUrl = (String) jsonObject.get("image");
-                addCommodity(id, name, providerId, price, categories, rating, inStock,imageUrl);
+                addCommodity(id, name, providerId, price, categories, rating, inStock, imageUrl);
             }
 
             String commentsJson = HttpRequest.getHttpResponse("http://5.253.25.110:5000/api/comments");
@@ -128,25 +141,6 @@ public class MarketManager {
             marketManagerInstance = new MarketManager();
 
         return marketManagerInstance;
-    }
-
-    private void updateCommodityScore(int commodityId) {
-        int sumRating = 0;
-        int numRating = 0;
-        for (Rating rating : ratings) {
-            if (rating.getCommodityId() == commodityId) {
-                sumRating += rating.getScore();
-                numRating++;
-            }
-        }
-        if (numRating != 0) {
-            for (Commodity commodity : commodities) {
-                if (commodity.getId() == commodityId) {
-                    commodity.updateRating(((float) sumRating) / numRating);
-                    return;
-                }
-            }
-        }
     }
 
     private User findUserByUsername(String username) {
@@ -209,16 +203,16 @@ public class MarketManager {
         return true;
     }
 
-    public boolean addProvider(int id, String name, Date registryDate) throws RuntimeException {
+    public boolean addProvider(int id, String name, Date registryDate, String imageUrl) throws RuntimeException {
         Provider provider = findProviderById(id);
         if (provider != null) {
             throw new RuntimeException("This id is already registered");
         }
-        providers.add(new Provider(id, name, registryDate));
+        providers.add(new Provider(id, name, registryDate, imageUrl));
         return true;
     }
 
-    public boolean addCommodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock,String imageUrl) throws RuntimeException {
+    public boolean addCommodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) throws RuntimeException {
         Provider provider = findProviderById(providerId);
         if (provider == null) {
             throw new RuntimeException("Provider id not found");
@@ -247,15 +241,7 @@ public class MarketManager {
         if (commodity == null) {
             throw new RuntimeException("Commodity not found");
         }
-        for (Rating rating : ratings) {
-            if (rating.getCommodityId() == commodityId && rating.getUsername().equals(username)) {
-                rating.updateScore(score);
-                updateCommodityScore(commodityId);
-                return true;
-            }
-        }
-        ratings.add(new Rating(username, commodityId, score));
-        updateCommodityScore(commodityId);
+        commodity.addRating(score, username);
         return true;
     }
 
@@ -332,6 +318,27 @@ public class MarketManager {
         return temp;
     }
 
+    public List<Commodity> getCommoditiesByProvider(String providerName) {
+        List<Commodity> temp = new ArrayList<>();
+        for (Commodity commodity : commodities) {
+            Provider provider = findProviderById(commodity.getProviderId());
+            if (provider != null && provider.getName().contains(providerName)) {
+                temp.add(commodity);
+            }
+        }
+        return temp;
+    }
+
+    public List<Commodity> getCommoditiesByProvider(int providerId) {
+        List<Commodity> temp = new ArrayList<>();
+        for (Commodity commodity : commodities) {
+            if (commodity.getProviderId() == providerId) {
+                temp.add(commodity);
+            }
+        }
+        return temp;
+    }
+
     public List<Commodity> getCommoditiesSortedByRate() {
         List<Commodity> temp = new ArrayList<>(commodities);
         temp.sort(Comparator.comparing(Commodity::getRating));
@@ -373,29 +380,32 @@ public class MarketManager {
         }
         return Collections.unmodifiableList(commodityArrayList);
     }
-    public List<Commodity> getSuggestedCommodities(Commodity criterionCommodity)throws RuntimeException{
-        List<Commodity> suggestedCommodities = new ArrayList<Commodity>();
+
+    public List<Commodity> getSuggestedCommodities(int commodityId) throws RuntimeException {
+        Commodity criterionCommodity = findCommodityById(commodityId);
+        List<Commodity> suggestedCommodities = new ArrayList<>();
         List<Float> scores = new ArrayList<>();
-        boolean addCondtion=true;
-        for (Commodity com : commodities){
-            if(com.getId()==criterionCommodity.getId())continue;
-            boolean isInSimilarCategory = haveCommonCategory(com,criterionCommodity);
-            float score = 11 * (isInSimilarCategory ? 1 : 0) +  com.getRating();
-            for (int i=0 ; i<scores.size();i++){
+        boolean addCondtion = true;
+        for (Commodity com : commodities) {
+            if (com.getId() == criterionCommodity.getId()) continue;
+            boolean isInSimilarCategory = haveCommonCategory(com, criterionCommodity);
+            float score = 11 * (isInSimilarCategory ? 1 : 0) + com.getRating();
+            for (int i = 0; i < scores.size(); i++) {
                 if (score >= scores.get(i)) {
                     scores.add(i, score);
-                    suggestedCommodities.add(i,com);
-                    addCondtion=false;
+                    suggestedCommodities.add(i, com);
+                    addCondtion = false;
                     break;
                 }
             }
-            if(addCondtion) {
+            if (addCondtion) {
                 scores.add(score);
                 suggestedCommodities.add(com);
             }
         }
-        return suggestedCommodities.subList(0, Math.min(suggestedCommodities.size(), 5));
+        return suggestedCommodities.subList(0, Math.min(suggestedCommodities.size(), 4));
     }
+
     public static boolean haveCommonCategory(Commodity commodity1, Commodity commodity2) {
         for (Category category : commodity1.getCategories()) {
             if (commodity2.getCategories().contains(category)) {
@@ -404,6 +414,7 @@ public class MarketManager {
         }
         return false;
     }
+
     public boolean purchase(String username, String discountCode) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {
@@ -506,6 +517,10 @@ public class MarketManager {
         return commentsToBeReturned;
     }
 
+    public List<Comment> getCommentList() {
+        return Collections.unmodifiableList(comments);
+    }
+
     public Comment getCommentById(int id) throws RuntimeException {
         for (Comment comment : comments) {
             if (comment.getId() == id)
@@ -561,14 +576,4 @@ public class MarketManager {
         }
         return discount.getPercent();
     }
-    public List<JSONObject> commoditiesToJsonList(List <Commodity> commodities){
-        List <JSONObject> commoditiesInJson = new ArrayList<>();
-        for (Commodity commodity : commodities) {
-            JSONObject commodityJson = commodity.toJsonObject(true);
-            commoditiesInJson.add(commodityJson);
-        }
-        return commoditiesInJson;
-    }
-
-
 }

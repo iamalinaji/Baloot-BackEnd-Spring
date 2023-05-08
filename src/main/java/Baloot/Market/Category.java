@@ -19,7 +19,7 @@ public enum Category {
 
     public static Category get(String url) {
         Optional<Category> c = Arrays.stream(Category.values())
-                .filter(env -> env.val.equals(url))
+                .filter(env -> env.val.contains(url))
                 .findFirst();
 
         return c.orElse(Unknown);
