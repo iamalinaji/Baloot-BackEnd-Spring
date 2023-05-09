@@ -390,6 +390,7 @@ public class MarketManager {
         return Collections.unmodifiableList(commodityArrayList);
     }
 
+
     public List<Commodity> getPurchasedList(String username) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {

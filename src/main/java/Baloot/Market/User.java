@@ -47,6 +47,7 @@ public class User {
         for (BuyItem buyListItem : buyList) {
             if (buyListItem.getCommodityId() == commodityId) {
                 buyListItem.quantity+=1;
+                return;
             }
         }
         BuyItem toBeAdded = new BuyItem(commodityId,1);

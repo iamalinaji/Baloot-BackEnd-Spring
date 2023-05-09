@@ -53,11 +53,18 @@ public class userController {
             responseBody.put("message", "Access denied!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
-        int amount = (int) requestBody.get("amount");
-        market.addCreditToUser(username, amount);
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("message", "Credit added successfully");
-        return ResponseEntity.ok(responseBody);
+        try {
+            String amount = (String) requestBody.get("amount");
+            int creditTobeAdded = Integer.parseInt(amount);
+            market.addCreditToUser(username, creditTobeAdded);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Credit added successfully");
+            return ResponseEntity.ok(responseBody);
+        }catch(Exception e ){
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+        }
     }
 
     @PostMapping("/users/{username}/cart")
@@ -70,7 +77,8 @@ public class userController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
         try {
-            int commodityId = (int) requestBody.get("commodityId");
+            String strVal = (String) requestBody.get("commodityId");
+            int commodityId = Integer.parseInt(strVal);
             market.addToBuyList(username, commodityId);
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Commodity added to cart successfully");

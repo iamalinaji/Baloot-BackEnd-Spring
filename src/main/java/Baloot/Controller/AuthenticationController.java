@@ -19,7 +19,7 @@ public class AuthenticationController {
         MarketManager market = MarketManager.getInstance();
         try {
             market.login(username,password);
-            int cart = market.getBuyList(username).size();
+            int cart = market.getBuyCommoditiesList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
@@ -40,7 +40,7 @@ public class AuthenticationController {
         String birthdate = request.get("birthDate");
         MarketManager market = MarketManager.getInstance();
         if (market.signup(username, password, email, address, birthdate)) {
-            int cart = market.getBuyList(username).size();
+            int cart = market.getBuyCommoditiesList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
@@ -73,7 +73,7 @@ public class AuthenticationController {
         MarketManager market = MarketManager.getInstance();
         if (market.isUserLoggedIn()) {
             String username = market.getLoggedInUser();
-            int cart = market.getBuyList(username).size();
+            int cart = market.getBuyCommoditiesList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
