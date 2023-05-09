@@ -86,10 +86,10 @@ public class Commodity {
         return imageUrl;
     }
 
-    public void buy() throws RuntimeException {
+    public void pickFromStock(int quantity) throws RuntimeException {
         if (inStock == 0) {
             throw new RuntimeException("Not enough in stock");
         }
-        inStock--;
+        inStock-= quantity;
     }
 }

@@ -1,9 +1,8 @@
 package Baloot.Market;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+
+import Baloot.Market.BuyItem;
 
 public class User {
     private final String username;
@@ -12,8 +11,8 @@ public class User {
     private Date birthDay;
     private String address;
     private int credit;
-    private final ArrayList<Integer> buyList = new ArrayList<>();
-    private final ArrayList<Integer> purchasedList = new ArrayList<>();
+    private final ArrayList<BuyItem> buyList = new ArrayList<>();
+    private final ArrayList<BuyItem> purchasedList = new ArrayList<>();
 
     public User(String username, String password, String email, Date birthDay, String address, int credit) {
         this.username = username;
@@ -45,29 +44,32 @@ public class User {
     }
 
     public void addToBuyList(int commodityId) throws RuntimeException {
-        for (int buyListCommodityId : buyList) {
-            if (buyListCommodityId == commodityId) {
-                throw new RuntimeException("Item already exist in buyList");
+        for (BuyItem buyListItem : buyList) {
+            if (buyListItem.getCommodityId() == commodityId) {
+                buyListItem.quantity+=1;
             }
         }
-        buyList.add(commodityId);
+        BuyItem toBeAdded = new BuyItem(commodityId,1);
+        buyList.add(toBeAdded);
     }
 
     public void removeFromBuyList(int commodityId) throws RuntimeException {
-        for (Integer buyListCommodityId : buyList) {
-            if (buyListCommodityId == commodityId) {
-                buyList.remove(buyListCommodityId);
+        Iterator<BuyItem> iterator = buyList.iterator();
+        while (iterator.hasNext()) {
+            BuyItem buyItem = iterator.next();
+            if (buyItem.getCommodityId() == commodityId) {
+                iterator.remove();
                 return;
             }
         }
         throw new RuntimeException("Item not found");
     }
 
-    List<Integer> getBuyList() {
+    List<BuyItem> getBuyList() {
         return Collections.unmodifiableList(buyList);
     }
 
-    List<Integer> getPurchasedList() {
+    List<BuyItem> getPurchasedList() {
         return Collections.unmodifiableList(purchasedList);
     }
 

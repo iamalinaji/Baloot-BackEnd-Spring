@@ -29,13 +29,12 @@ public class MarketManager {
         return loggedInUser;
     }
 
-    public boolean login(String username, String password) throws RuntimeException {
+    public void login(String username, String password) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null || !user.checkPassword(password)) {
             throw new RuntimeException("Invalid username or password");
         } else {
             loggedInUser = username;
-            return true;
         }
     }
 
@@ -52,12 +51,11 @@ public class MarketManager {
         return true;
     }
 
-    public boolean logout() {
+    public void logout() {
         if (loggedInUser.equals("")) {
             throw new RuntimeException("No user is logged in");
         }
         loggedInUser = "";
-        return true;
     }
 
     public void clear() {
@@ -187,7 +185,7 @@ public class MarketManager {
         return null;
     }
 
-    public boolean addUser(String username, String password, String email, Date birthDay, String address, int credit) throws RuntimeException {
+    public void addUser(String username, String password, String email, Date birthDay, String address, int credit) throws RuntimeException {
         CharSequence[] invalidChars = {" ", "‌", "!", "@", "#", "$", "%", "^", "&", "*"};
         for (CharSequence invalidChar : invalidChars) {
             if (username.contains(invalidChar)) {
@@ -197,22 +195,20 @@ public class MarketManager {
         User user = findUserByUsername(username);
         if (user == null) {
             users.add(new User(username, password, email, birthDay, address, credit));
-            return true;
+            return;
         }
         user.updateUser(password, email, birthDay, address, credit);
-        return true;
     }
 
-    public boolean addProvider(int id, String name, Date registryDate, String imageUrl) throws RuntimeException {
+    public void addProvider(int id, String name, Date registryDate, String imageUrl) throws RuntimeException {
         Provider provider = findProviderById(id);
         if (provider != null) {
             throw new RuntimeException("This id is already registered");
         }
         providers.add(new Provider(id, name, registryDate, imageUrl));
-        return true;
     }
 
-    public boolean addCommodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) throws RuntimeException {
+    public void addCommodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) throws RuntimeException {
         Provider provider = findProviderById(providerId);
         if (provider == null) {
             throw new RuntimeException("Provider id not found");
@@ -222,14 +218,13 @@ public class MarketManager {
             throw new RuntimeException("This id is already registered");
         }
         commodities.add(new Commodity(id, name, providerId, price, categories, rating, inStock, imageUrl));
-        return true;
     }
 
     public List<Commodity> getCommoditiesList() {
         return Collections.unmodifiableList(commodities);
     }
 
-    public boolean rateCommodity(String username, int commodityId, int score) throws RuntimeException {
+    public void rateCommodity(String username, int commodityId, int score) throws RuntimeException {
         if (score < 1 || score > 10) {
             throw new RuntimeException("Invalid score");
         }
@@ -242,10 +237,9 @@ public class MarketManager {
             throw new RuntimeException("Commodity not found");
         }
         commodity.addRating(score, username);
-        return true;
     }
 
-    public boolean addToBuyList(String username, int commodityId) throws RuntimeException {
+    public void addToBuyList(String username, int commodityId) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {
             throw new RuntimeException("User not found");
@@ -258,10 +252,21 @@ public class MarketManager {
             throw new RuntimeException("Out of stoke");
         }
         user.addToBuyList(commodityId);
-        return true;
+    }
+    public void incrementBuyItem(String username, int commodityId) throws RuntimeException{
+        User user = findUserByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        for (BuyItem buyItem : user.getBuyList()){
+            if (buyItem.getCommodityId() == commodityId)
+                buyItem.quantity+=1;
+        }
+        throw new RuntimeException("Item does not exist.");
+
     }
 
-    public boolean removeFromBuyList(String username, int commodityId) throws RuntimeException {
+    public void removeFromBuyList(String username, int commodityId) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {
             throw new RuntimeException("User not found");
@@ -271,9 +276,26 @@ public class MarketManager {
             throw new RuntimeException("Commodity not found");
         }
         user.removeFromBuyList(commodityId);
-        return true;
     }
 
+    public void decrementBuyItem(String username , int commodityId) throws RuntimeException{
+        User user = findUserByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        Commodity commodity = findCommodityById(commodityId);
+        if (commodity == null) {
+            throw new RuntimeException("Commodity not found");
+        }
+        for (BuyItem buyItem : user.getBuyList()){
+            if (buyItem.getCommodityId() == commodityId)
+                if(buyItem.quantity==1)
+                    removeFromBuyList(username,commodityId);
+                else
+                    buyItem.quantity-=1;
+        }
+        throw new RuntimeException("Item does not exist.");
+    }
     public Commodity getCommodityById(int id) throws RuntimeException {
         Commodity commodity = findCommodityById(id);
         if (commodity == null) {
@@ -355,15 +377,15 @@ public class MarketManager {
         return temp;
     }
 
-    public List<Commodity> getBuyList(String username) throws RuntimeException {
+    public List<Commodity> getBuyCommoditiesList(String username) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
-        List<Integer> buyList = user.getBuyList();
+        List<BuyItem> buyList = user.getBuyList();
         ArrayList<Commodity> commodityArrayList = new ArrayList<>();
-        for (int buyItem : buyList) {
-            commodityArrayList.add(getCommodityById(buyItem));
+        for (BuyItem buyItem : buyList) {
+            commodityArrayList.add(getCommodityById(buyItem.getCommodityId()));
         }
         return Collections.unmodifiableList(commodityArrayList);
     }
@@ -373,10 +395,10 @@ public class MarketManager {
         if (user == null) {
             throw new RuntimeException("User not found");
         }
-        List<Integer> purchasedList = user.getPurchasedList();
+        List<BuyItem> purchasedList = user.getPurchasedList();
         ArrayList<Commodity> commodityArrayList = new ArrayList<>();
-        for (int buyItem : purchasedList) {
-            commodityArrayList.add(getCommodityById(buyItem));
+        for (BuyItem buyItem : purchasedList) {
+            commodityArrayList.add(getCommodityById(buyItem.getCommodityId()));
         }
         return Collections.unmodifiableList(commodityArrayList);
     }
@@ -428,47 +450,25 @@ public class MarketManager {
             throw new RuntimeException("Discount can't be used");
         }
 
-        List<Commodity> buyList = getBuyList(username);
+        List<BuyItem> buyList = user.getBuyList();
         int totalPrice = 0;
-        for (Commodity commodity : buyList) {
-            totalPrice += commodity.getPrice();
+        for (BuyItem buyItem : buyList) {
+            totalPrice += this.getCommodityById(buyItem.getCommodityId()).getPrice() * buyItem.quantity;
         }
         totalPrice -= totalPrice * discount.getPercent() / 100;
-        for (Commodity commodity : buyList) {
-            if (commodity.getInStock() <= 0) {
+        for (BuyItem buyItem : buyList) {
+            if (this.getCommodityById(buyItem.getCommodityId()).getInStock() < buyItem.quantity) {
                 throw new RuntimeException("Out of stoke");
             }
         }
         user.purchase(totalPrice);
-        for (Commodity commodity : buyList) {
-            commodity.buy();
+        for (BuyItem buyItem : buyList) {
+            this.getCommodityById(buyItem.getCommodityId()).pickFromStock(buyItem.quantity);
         }
         discount.use(username);
         return true;
     }
 
-    public boolean purchase(String username) throws RuntimeException {
-        User user = findUserByUsername(username);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-
-        List<Commodity> buyList = getBuyList(username);
-        int totalPrice = 0;
-        for (Commodity commodity : buyList) {
-            totalPrice += commodity.getPrice();
-        }
-        for (Commodity commodity : buyList) {
-            if (commodity.getInStock() <= 0) {
-                throw new RuntimeException("Out of stoke");
-            }
-        }
-        user.purchase(totalPrice);
-        for (Commodity commodity : buyList) {
-            commodity.buy();
-        }
-        return true;
-    }
 
     public boolean addCreditToUser(String username, int credit) throws RuntimeException {
         User user = findUserByUsername(username);
