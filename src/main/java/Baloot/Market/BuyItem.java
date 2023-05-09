@@ -1,16 +1,18 @@
 package Baloot.Market;
 
-import Baloot.Market.Commodity;
-import java.util.ArrayList;
 public class BuyItem {
-    private final int commodityId;
+    private final Commodity commodity;
     public int quantity;
 
-    BuyItem(int commodityId, int quantity) {
-        this.commodityId = commodityId;
+    BuyItem(Commodity commodity, int quantity) {
+        this.commodity = commodity;
         this.quantity = quantity;
     }
-    public int getCommodityId(){
-        return commodityId;
+    public Commodity getCommodity() {
+        return commodity;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 }

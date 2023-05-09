@@ -1,11 +1,12 @@
 package Baloot.Controller;
 
-import Baloot.Market.Commodity;
+import Baloot.Market.BuyItem;
 import Baloot.Market.MarketManager;
 import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class userController {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Credit added successfully");
             return ResponseEntity.ok(responseBody);
-        }catch(Exception e ){
+        } catch (Exception e) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
@@ -77,8 +78,7 @@ public class userController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
         try {
-            String strVal = (String) requestBody.get("commodityId");
-            int commodityId = Integer.parseInt(strVal);
+            int commodityId = (int) requestBody.get("commodityId");
             market.addToBuyList(username, commodityId);
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Commodity added to cart successfully");
@@ -99,7 +99,7 @@ public class userController {
             responseBody.put("message", "Access denied!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
-        List<Commodity> carts = market.getBuyCommoditiesList(username);
+        List<BuyItem> carts = market.getBuyList(username);
         return ResponseEntity.ok(carts);
     }
 
@@ -112,12 +112,12 @@ public class userController {
             responseBody.put("message", "Access denied!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
-        List<Commodity> bought = market.getPurchasedList(username);
+        List<BuyItem> bought = market.getPurchasedList(username);
         return ResponseEntity.ok(bought);
     }
 
-    @PostMapping("users/{username}/cart/incrementById/{itemId}")
-    public ResponseEntity<?> increaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId){
+    @PostMapping("users/{username}/cart/increment/{itemId}")
+    public ResponseEntity<?> increaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId) {
         MarketManager market = MarketManager.getInstance();
         String loggedInUser = market.getLoggedInUser();
         if (!Objects.equals(loggedInUser, username)) {
@@ -125,8 +125,8 @@ public class userController {
             responseBody.put("message", "Access denied!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
-        try{
-            market.incrementBuyItem(username,itemId);
+        try {
+            market.incrementBuyItem(username, itemId);
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Commodity Incremented in buy list successfully.");
             return ResponseEntity.ok(responseBody);
@@ -137,8 +137,8 @@ public class userController {
         }
     }
 
-    @PostMapping("user/{username}/cart/purchase")
-    public ResponseEntity<?> purchase(@PathVariable("username") String username , @RequestBody JSONObject requestBody){
+    @PostMapping("users/{username}/cart/decrement/{itemId}")
+    public ResponseEntity<?> decreaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId) {
         MarketManager market = MarketManager.getInstance();
         String loggedInUser = market.getLoggedInUser();
         if (!Objects.equals(loggedInUser, username)) {
@@ -146,13 +146,67 @@ public class userController {
             responseBody.put("message", "Access denied!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
         }
-        try{
+        try {
+            market.decrementBuyItem(username, itemId);
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Commodity Decremented in buy list successfully.");
+            return ResponseEntity.ok(responseBody);
+        } catch (Exception e) {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+        }
+    }
+
+    @PostMapping("users/{username}/discount")
+    public ResponseEntity<?> useDiscountCode(@PathVariable("username") String username, @RequestBody JSONObject requestBody) {
+        MarketManager market = MarketManager.getInstance();
+        String loggedInUser = market.getLoggedInUser();
+        if (!Objects.equals(loggedInUser, username)) {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Access denied!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
+        }
+        try {
             String discountCode = (String) requestBody.get("discountCode");
-            market.purchase(username,discountCode);
+            if (market.canUserUseDiscount(username, discountCode)) {
+                int percent = market.getDiscountPercent(discountCode);
+                Map<String, Object> responseBody = new HashMap<>();
+                responseBody.put("percent", percent);
+                return ResponseEntity.ok(responseBody);
+            }
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Discount code is not valid!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+        } catch (Exception e) {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
+        }
+    }
+
+
+
+    @PostMapping("users/{username}/cart/purchase")
+    public ResponseEntity<?> purchase(@PathVariable("username") String username, @RequestBody JSONObject requestBody) {
+        MarketManager market = MarketManager.getInstance();
+        String loggedInUser = market.getLoggedInUser();
+        if (!Objects.equals(loggedInUser, username)) {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Access denied!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseBody);
+        }
+        try {
+            String discountCode = (String) requestBody.get("discountCode");
+            if (discountCode == null) {
+                market.purchase(username);
+            } else {
+                market.purchase(username, discountCode);
+            }
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Purchase done successfully.");
             return ResponseEntity.ok(responseBody);
-        } catch (Exception e){
+        } catch (Exception e) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);

@@ -2,8 +2,6 @@ package Baloot.Market;
 
 import java.util.*;
 
-import Baloot.Market.BuyItem;
-
 public class User {
     private final String username;
     private String password;
@@ -43,14 +41,14 @@ public class User {
         buyList.clear();
     }
 
-    public void addToBuyList(int commodityId) throws RuntimeException {
+    public void addToBuyList(Commodity commodity) throws RuntimeException {
         for (BuyItem buyListItem : buyList) {
-            if (buyListItem.getCommodityId() == commodityId) {
+            if (buyListItem.getCommodity().getId() == commodity.getId()) {
                 buyListItem.quantity+=1;
                 return;
             }
         }
-        BuyItem toBeAdded = new BuyItem(commodityId,1);
+        BuyItem toBeAdded = new BuyItem(commodity,1);
         buyList.add(toBeAdded);
     }
 
@@ -58,7 +56,7 @@ public class User {
         Iterator<BuyItem> iterator = buyList.iterator();
         while (iterator.hasNext()) {
             BuyItem buyItem = iterator.next();
-            if (buyItem.getCommodityId() == commodityId) {
+            if (buyItem.getCommodity().getId() == commodityId) {
                 iterator.remove();
                 return;
             }
