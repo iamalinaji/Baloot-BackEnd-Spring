@@ -1,17 +1,26 @@
 package Baloot.Market;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.Date;
 
-
+@Entity(name = "comment")
 public class Comment {
-    private final String username;
-    private final int commodityId;
-    private final int id;
-    private final String comment;
-    private final Date date;
-    private final ArrayList<String> upVotes = new ArrayList<>();
-    private final ArrayList<String> downVotes = new ArrayList<>();
+    @Column
+    private String username;
+    @Column
+    private int commodityId;
+    @Id
+    private int id;
+    @Column
+    private String comment;
+    @Column
+    private Date date;
+    private ArrayList<String> upVotes = new ArrayList<>();
+    private ArrayList<String> downVotes = new ArrayList<>();
 
 
     public Comment(int id, String username, int commodityId, String comment, Date date) {
@@ -20,6 +29,10 @@ public class Comment {
         this.id = id;
         this.comment = comment;
         this.date = date;
+    }
+
+    public Comment() {
+
     }
 
     public void upVote(String username) {

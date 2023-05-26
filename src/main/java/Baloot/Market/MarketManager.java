@@ -277,10 +277,10 @@ public class MarketManager {
         }
         for (BuyItem buyItem : user.getBuyList()) {
             if (buyItem.getCommodity().getId() == commodityId) {
-                if (buyItem.quantity == 1)
+                if (buyItem.getQuantity() == 1)
                     removeFromBuyList(username, commodityId);
                 else
-                    buyItem.quantity -= 1;
+                    buyItem.setQuantity(buyItem.getQuantity() - 1);
                 return;
             }
         }
@@ -298,7 +298,7 @@ public class MarketManager {
         }
         for (BuyItem buyItem : user.getBuyList()) {
             if (buyItem.getCommodity().getId() == commodityId) {
-                buyItem.quantity += 1;
+                buyItem.setQuantity(buyItem.getQuantity() + 1);
                 return;
             }
         }
@@ -455,17 +455,17 @@ public class MarketManager {
         List<BuyItem> buyList = user.getBuyList();
         int totalPrice = 0;
         for (BuyItem buyItem : buyList) {
-            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.quantity;
+            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.getQuantity();
         }
         totalPrice -= totalPrice * discount.getPercent() / 100;
         for (BuyItem buyItem : buyList) {
-            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.quantity) {
+            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.getQuantity()) {
                 throw new RuntimeException("Out of stoke");
             }
         }
         user.purchase(totalPrice);
         for (BuyItem buyItem : buyList) {
-            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.quantity);
+            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.getQuantity());
         }
         discount.use(username);
         return true;
@@ -479,19 +479,19 @@ public class MarketManager {
         List<BuyItem> buyList = user.getBuyList();
         int totalPrice = 0;
         for (BuyItem buyItem : buyList) {
-            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.quantity;
+            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.getQuantity();
         }
         if (user.getCredit() < totalPrice) {
             throw new RuntimeException("Not enough credit");
         }
         for (BuyItem buyItem : buyList) {
-            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.quantity) {
+            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.getQuantity()) {
                 throw new RuntimeException("Out of stoke");
             }
         }
         user.purchase(totalPrice);
         for (BuyItem buyItem : buyList) {
-            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.quantity);
+            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.getQuantity());
         }
         return true;
     }

@@ -1,18 +1,30 @@
 package Baloot.Market;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Date;
 
+@Entity(name = "provider")
 public class Provider {
-    private final int id;
-    private final String name;
-    private final Date registryDate;
-    private final String imageUrl;
+    @Id
+    private int id;
+    @Column
+    private String name;
+    @Column
+    private Date registryDate;
+    @Column
+    private String imageUrl;
 
     public Provider(int id, String name, Date registryDate, String imageUrl) {
         this.id = id;
         this.name = name;
         this.registryDate = registryDate;
         this.imageUrl = imageUrl;
+    }
+
+    public Provider() {
+
     }
 
     public int getId() {

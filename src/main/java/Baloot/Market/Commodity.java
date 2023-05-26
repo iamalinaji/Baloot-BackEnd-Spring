@@ -2,14 +2,22 @@ package Baloot.Market;
 
 import org.json.simple.JSONObject;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Entity(name = "commodity")
 public class Commodity {
+    @Id
     private final int id;
+    @Column
     private final String name;
+    @Column
     private final int providerId;
+    @Column
     private final int price;
     private ArrayList<Rating> ratings;
     private float rating;
