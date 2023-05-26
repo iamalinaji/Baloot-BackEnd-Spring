@@ -2,20 +2,34 @@ package Baloot.Market;
 
 import org.json.simple.JSONObject;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Entity(name = "commodity")
 public class Commodity {
-    private final int id;
-    private final String name;
-    private final int providerId;
-    private final int price;
+    @Id
+    private int id;
+    @Column
+    private String name;
+    @Column
+    private int providerId;
+    @Column
+    private int price;
+    @OneToMany
     private ArrayList<Rating> ratings;
+    @Column
     private float rating;
+    @Column
     private int inStock;
-    private final ArrayList<Category> categories;
-    private final String imageUrl;
+    @OneToMany
+    private ArrayList<Category> categories;
+    @Column
+    private String imageUrl;
 
     public Commodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) {
         this.id = id;
@@ -27,6 +41,10 @@ public class Commodity {
         this.categories = categories;
         this.imageUrl = imageUrl;
         ratings = new ArrayList<>();
+    }
+
+    public Commodity() {
+
     }
 
     public int getId() {

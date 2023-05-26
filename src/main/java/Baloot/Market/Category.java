@@ -1,8 +1,11 @@
 package Baloot.Market;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Arrays;
 import java.util.Optional;
 
+@Entity(name = "category")
 public enum Category {
     Vegetables("Vegetables"),
     Technology("Technology"),
@@ -11,10 +14,15 @@ public enum Category {
     Fruits("Fruits"),
     Unknown("Unknown");
 
-    private final String val;
+    @Id
+    private String val;
 
     Category(String s) {
         this.val = s;
+    }
+
+    Category() {
+
     }
 
     public static Category get(String url) {

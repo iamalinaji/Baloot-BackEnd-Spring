@@ -1,15 +1,25 @@
 package Baloot.Market;
 
+import javax.persistence.*;
 import java.util.*;
 
+@Entity(name = "User")
 public class User {
-    private final String username;
+    @Id
+    private String username;
+    @Column
     private String password;
+    @Column
     private String email;
+    @Column
     private Date birthDay;
+    @Column
     private String address;
+    @Column
     private int credit;
+    @ManyToMany(mappedBy = "commodity")
     private final ArrayList<BuyItem> buyList = new ArrayList<>();
+    @ManyToMany(mappedBy = "commodity")
     private final ArrayList<BuyItem> purchasedList = new ArrayList<>();
 
     public User(String username, String password, String email, Date birthDay, String address, int credit) {
@@ -19,6 +29,10 @@ public class User {
         this.birthDay = birthDay;
         this.address = address;
         this.credit = credit;
+    }
+
+    public User() {
+
     }
 
     void updateUser(String password, String email, Date birthDay, String address, int credit) {
@@ -44,7 +58,7 @@ public class User {
     public void addToBuyList(Commodity commodity) throws RuntimeException {
         for (BuyItem buyListItem : buyList) {
             if (buyListItem.getCommodity().getId() == commodity.getId()) {
-                buyListItem.quantity+=1;
+                buyListItem.setQuantity(buyListItem.getQuantity() + 1);
                 return;
             }
         }
