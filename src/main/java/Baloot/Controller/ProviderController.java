@@ -1,7 +1,7 @@
 package Baloot.Controller;
 
-import Baloot.Market.MarketManager;
-import Baloot.Market.Provider;
+import Baloot.Service.MarketManager;
+import Baloot.Model.Provider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

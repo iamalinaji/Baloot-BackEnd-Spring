@@ -1,5 +1,8 @@
-package Baloot.Market;
+package Baloot.Service;
 
+import Baloot.Model.*;
+import Baloot.Util.HttpRequest;
+import Baloot.Util.JsonParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -13,6 +16,7 @@ public class MarketManager {
     private final ArrayList<Commodity> commodities = new ArrayList<>();
     private final ArrayList<Comment> comments = new ArrayList<>();
     private final ArrayList<Discount> discounts = new ArrayList<>();
+    private final ArrayList<Category> categories = new ArrayList<>();
     private static MarketManager marketManagerInstance = null;
 
     private String loggedInUser = "";
@@ -101,7 +105,7 @@ public class MarketManager {
                 String name = (String) jsonObject.get("name");
                 int providerId = (int) (long) jsonObject.get("providerId");
                 int price = (int) (long) jsonObject.get("price");
-                ArrayList<Category> categories = JsonParser.parseCategory((JSONArray) jsonObject.get("categories"));
+                ArrayList<String> categories = JsonParser.parseCategory((JSONArray) jsonObject.get("categories"));
                 float rating = (float) (double) jsonObject.get("rating");
                 int inStock = (int) (long) jsonObject.get("inStock");
                 String imageUrl = (String) jsonObject.get("image");
@@ -128,6 +132,7 @@ public class MarketManager {
                 int id = comments.size() + 1;
                 addComment(id, username, commodityId, comment, date);
             }
+
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -208,7 +213,7 @@ public class MarketManager {
         providers.add(new Provider(id, name, registryDate, imageUrl));
     }
 
-    public void addCommodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) throws RuntimeException {
+    public void addCommodity(int id, String name, int providerId, int price, ArrayList<String> categories, float rating, int inStock, String imageUrl) throws RuntimeException {
         Provider provider = findProviderById(providerId);
         if (provider == null) {
             throw new RuntimeException("Provider id not found");
@@ -217,7 +222,27 @@ public class MarketManager {
         if (commodity != null) {
             throw new RuntimeException("This id is already registered");
         }
-        commodities.add(new Commodity(id, name, providerId, price, categories, rating, inStock, imageUrl));
+        List<Category> categoriesList = new ArrayList<>();
+        for (String categoryName : categories) {
+            Category category = findCategoryByName(categoryName);
+            if (category == null) {
+                category = new Category(categoryName);
+                categoriesList.add(category);
+                categories.add(categoryName);
+            } else {
+                categoriesList.add(category);
+            }
+        }
+        commodities.add(new Commodity(id, name, providerId, price, categoriesList, rating, inStock, imageUrl));
+    }
+
+    private Category findCategoryByName(String categoryName) {
+        for (Category category : categories) {
+            if (category.getName().equals(categoryName)) {
+                return category;
+            }
+        }
+        return null;
     }
 
     public List<Commodity> getCommoditiesList() {
@@ -277,10 +302,10 @@ public class MarketManager {
         }
         for (BuyItem buyItem : user.getBuyList()) {
             if (buyItem.getCommodity().getId() == commodityId) {
-                if (buyItem.quantity == 1)
+                if (buyItem.getQuantity() == 1)
                     removeFromBuyList(username, commodityId);
                 else
-                    buyItem.quantity -= 1;
+                    buyItem.setQuantity(buyItem.getQuantity() - 1);
                 return;
             }
         }
@@ -298,7 +323,7 @@ public class MarketManager {
         }
         for (BuyItem buyItem : user.getBuyList()) {
             if (buyItem.getCommodity().getId() == commodityId) {
-                buyItem.quantity += 1;
+                buyItem.setQuantity(buyItem.getQuantity() + 1);
                 return;
             }
         }
@@ -329,7 +354,7 @@ public class MarketManager {
         return user;
     }
 
-    public List<Commodity> getCommoditiesByCategory(Category category) {
+    public List<Commodity> getCommoditiesByCategory(String category) {
         List<Commodity> temp = new ArrayList<>();
         for (Commodity commodity : commodities) {
             if (commodity.getCategories().contains(category)) {
@@ -448,24 +473,24 @@ public class MarketManager {
         if (discount == null) {
             throw new RuntimeException("Discount not found");
         }
-        if (!discount.canUse(username)) {
+        if (discount.cantUse(username)) {
             throw new RuntimeException("Discount can't be used");
         }
 
         List<BuyItem> buyList = user.getBuyList();
         int totalPrice = 0;
         for (BuyItem buyItem : buyList) {
-            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.quantity;
+            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.getQuantity();
         }
         totalPrice -= totalPrice * discount.getPercent() / 100;
         for (BuyItem buyItem : buyList) {
-            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.quantity) {
+            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.getQuantity()) {
                 throw new RuntimeException("Out of stoke");
             }
         }
         user.purchase(totalPrice);
         for (BuyItem buyItem : buyList) {
-            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.quantity);
+            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.getQuantity());
         }
         discount.use(username);
         return true;
@@ -479,19 +504,19 @@ public class MarketManager {
         List<BuyItem> buyList = user.getBuyList();
         int totalPrice = 0;
         for (BuyItem buyItem : buyList) {
-            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.quantity;
+            totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.getQuantity();
         }
         if (user.getCredit() < totalPrice) {
             throw new RuntimeException("Not enough credit");
         }
         for (BuyItem buyItem : buyList) {
-            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.quantity) {
+            if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.getQuantity()) {
                 throw new RuntimeException("Out of stoke");
             }
         }
         user.purchase(totalPrice);
         for (BuyItem buyItem : buyList) {
-            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.quantity);
+            this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.getQuantity());
         }
         return true;
     }
@@ -560,12 +585,16 @@ public class MarketManager {
         if (comment == null) {
             throw new RuntimeException("Comment not found");
         }
+        User user = findUserByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
         if (userVote == 1) {
-            comment.upVote(username);
+            comment.upVote(user);
         } else if (userVote == -1) {
-            comment.downVote(username);
+            comment.downVote(user);
         } else if (userVote == 0) {
-            comment.removeVote(username);
+            comment.removeVote(user);
         } else {
             throw new RuntimeException("Invalid vote");
         }
@@ -589,7 +618,7 @@ public class MarketManager {
         if (discount == null) {
             throw new RuntimeException("Discount not found");
         }
-        if (!discount.canUse(username)) {
+        if (discount.cantUse(username)) {
             throw new RuntimeException("User can't use this discount");
         }
         return true;

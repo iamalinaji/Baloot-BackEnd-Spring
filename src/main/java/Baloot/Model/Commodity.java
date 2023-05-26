@@ -1,23 +1,37 @@
-package Baloot.Market;
+package Baloot.Model;
 
-import org.json.simple.JSONObject;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Entity(name = "commodity")
 public class Commodity {
-    private final int id;
-    private final String name;
-    private final int providerId;
-    private final int price;
-    private ArrayList<Rating> ratings;
+    @Id
+    private int id;
+    @Column
+    private String name;
+    @Column
+    private int providerId;
+    @Column
+    private int price;
+    @OneToMany(targetEntity = Rating.class)
+    private List<Rating> ratings;
+    @Column
     private float rating;
+    @Column
     private int inStock;
-    private final ArrayList<Category> categories;
-    private final String imageUrl;
+    @OneToMany(targetEntity = Category.class)
+    private List<Category> categories;
 
-    public Commodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) {
+    @Column
+    private String imageUrl;
+
+    public Commodity(int id, String name, int providerId, int price, List<Category> categories, float rating, int inStock, String imageUrl) {
         this.id = id;
         this.name = name;
         this.providerId = providerId;
@@ -27,6 +41,10 @@ public class Commodity {
         this.categories = categories;
         this.imageUrl = imageUrl;
         ratings = new ArrayList<>();
+    }
+
+    public Commodity() {
+
     }
 
     public int getId() {
@@ -78,7 +96,7 @@ public class Commodity {
         return rating;
     }
 
-    public ArrayList<Rating> getRatings() {
+    public List<Rating> getRatings() {
         return ratings;
     }
 

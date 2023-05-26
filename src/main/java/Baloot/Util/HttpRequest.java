@@ -1,4 +1,4 @@
-package Baloot.Market;
+package Baloot.Util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

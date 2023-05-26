@@ -1,8 +1,7 @@
 package Baloot.Controller;
 
-import Baloot.Market.Category;
-import Baloot.Market.Commodity;
-import Baloot.Market.MarketManager;
+import Baloot.Model.Commodity;
+import Baloot.Service.MarketManager;
 import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,8 +76,7 @@ public class CommodityController {
     @GetMapping("/commodities/search-by-category")
     public ResponseEntity<List<Commodity>> searchByCategory(@RequestParam("category") String stringCategory) {
         MarketManager market = MarketManager.getInstance();
-        Category category = Category.get(stringCategory);
-        List<Commodity> commoditiesByCategory = market.getCommoditiesByCategory(category);
+        List<Commodity> commoditiesByCategory = market.getCommoditiesByCategory(stringCategory);
         if (commoditiesByCategory.isEmpty())
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(commoditiesByCategory);

@@ -1,7 +1,7 @@
 package Baloot.Controller;
 
-import Baloot.Market.BuyItem;
-import Baloot.Market.MarketManager;
+import Baloot.Model.BuyItem;
+import Baloot.Service.MarketManager;
 import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

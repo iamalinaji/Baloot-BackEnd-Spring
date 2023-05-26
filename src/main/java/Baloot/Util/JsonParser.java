@@ -1,4 +1,4 @@
-package Baloot.Market;
+package Baloot.Util;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -6,9 +6,10 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class JsonParser {
-    static JSONObject parseJsonObject(String s) {
+    public static JSONObject parseJsonObject(String s) {
         JSONParser parser = new JSONParser();
         try {
             Object obj = parser.parse(s);
@@ -19,7 +20,7 @@ public class JsonParser {
         return new JSONObject();
     }
 
-    static JSONArray parseJsonArray(String s) {
+    public static JSONArray parseJsonArray(String s) {
         JSONParser parser = new JSONParser();
         try {
             Object obj = parser.parse(s);
@@ -30,21 +31,17 @@ public class JsonParser {
         return new JSONArray();
     }
 
-    static ArrayList<Category> parseCategory(String c) {
+    static ArrayList<String> parseCategory(String c) {
         c = c.replaceAll("[\\[\\]]", "");
         String[] spited = c.split(", ");
-        ArrayList<Category> categories = new ArrayList<>();
-        for (String val : spited) {
-            categories.add(Category.get(val));
-        }
-        return categories;
+        return new ArrayList<>(Arrays.asList(spited));
     }
 
-    static ArrayList<Category> parseCategory(JSONArray a) {
-        ArrayList<Category> categories = new ArrayList<>();
+    public static ArrayList<String> parseCategory(JSONArray a) {
+        ArrayList<String> categories = new ArrayList<>();
         for (Object obj : a) {
             String val = (String) obj;
-            categories.add(Category.get(val));
+            categories.add(val);
         }
         return categories;
     }

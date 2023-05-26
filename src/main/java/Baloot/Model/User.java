@@ -1,16 +1,34 @@
-package Baloot.Market;
+package Baloot.Model;
+
+import jakarta.persistence.*;
 
 import java.util.*;
 
+@Entity(name = "User")
 public class User {
-    private final String username;
+    @Id
+    private String username;
+
+    @Column
     private String password;
+
+    @Column
     private String email;
+
+    @Column(name = "birthday")
     private Date birthDay;
+
+    @Column
     private String address;
+
+    @Column
     private int credit;
-    private final ArrayList<BuyItem> buyList = new ArrayList<>();
-    private final ArrayList<BuyItem> purchasedList = new ArrayList<>();
+
+    @ManyToMany
+    private final List<BuyItem> buyList = new ArrayList<>();
+
+    @ManyToMany
+    private final List<BuyItem> purchasedList = new ArrayList<>();
 
     public User(String username, String password, String email, Date birthDay, String address, int credit) {
         this.username = username;
@@ -21,7 +39,13 @@ public class User {
         this.credit = credit;
     }
 
-    void updateUser(String password, String email, Date birthDay, String address, int credit) {
+    public User() {
+    }
+
+    // Getters and setters
+    // ...
+
+    public void updateUser(String password, String email, Date birthDay, String address, int credit) {
         this.password = password;
         this.email = email;
         this.birthDay = birthDay;
@@ -29,8 +53,8 @@ public class User {
         this.credit = credit;
     }
 
-    public void purchase(int price) throws RuntimeException {
-        if (buyList.size() == 0) {
+    public void purchase(int price) {
+        if (buyList.isEmpty()) {
             throw new RuntimeException("Buy list is empty");
         }
         if (credit < price) {
@@ -41,18 +65,18 @@ public class User {
         buyList.clear();
     }
 
-    public void addToBuyList(Commodity commodity) throws RuntimeException {
+    public void addToBuyList(Commodity commodity) {
         for (BuyItem buyListItem : buyList) {
             if (buyListItem.getCommodity().getId() == commodity.getId()) {
-                buyListItem.quantity+=1;
+                buyListItem.setQuantity(buyListItem.getQuantity() + 1);
                 return;
             }
         }
-        BuyItem toBeAdded = new BuyItem(commodity,1);
+        BuyItem toBeAdded = new BuyItem(commodity, this, 1);
         buyList.add(toBeAdded);
     }
 
-    public void removeFromBuyList(int commodityId) throws RuntimeException {
+    public void removeFromBuyList(int commodityId) {
         Iterator<BuyItem> iterator = buyList.iterator();
         while (iterator.hasNext()) {
             BuyItem buyItem = iterator.next();
@@ -64,15 +88,15 @@ public class User {
         throw new RuntimeException("Item not found");
     }
 
-    List<BuyItem> getBuyList() {
+    public List<BuyItem> getBuyList() {
         return Collections.unmodifiableList(buyList);
     }
 
-    List<BuyItem> getPurchasedList() {
+    public List<BuyItem> getPurchasedList() {
         return Collections.unmodifiableList(purchasedList);
     }
 
-    String getUsername() {
+    public String getUsername() {
         return username;
     }
 

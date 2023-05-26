@@ -1,12 +1,12 @@
-package Baloot.Market;
+package Baloot.Model;
 
 import java.util.ArrayList;
 
 public class Discount {
-    private String code;
-    private int percent;
+    private final String code;
+    private final int percent;
 
-    private ArrayList<String> usedUsers = new ArrayList<>();
+    private final ArrayList<String> usedUsers = new ArrayList<>();
 
     public Discount(String code, int percent) {
         this.code = code;
@@ -21,13 +21,13 @@ public class Discount {
         return percent;
     }
 
-    public boolean canUse(String username) {
+    public boolean cantUse(String username) {
         for (String usedUser : usedUsers) {
             if (usedUser.equals(username)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public void use(String username) throws RuntimeException {
