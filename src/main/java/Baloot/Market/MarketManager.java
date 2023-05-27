@@ -560,12 +560,16 @@ public class MarketManager {
         if (comment == null) {
             throw new RuntimeException("Comment not found");
         }
+        User user = findUserByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
         if (userVote == 1) {
-            comment.upVote(username);
+            comment.upVote(user);
         } else if (userVote == -1) {
-            comment.downVote(username);
+            comment.downVote(user);
         } else if (userVote == 0) {
-            comment.removeVote(username);
+            comment.removeVote(user);
         } else {
             throw new RuntimeException("Invalid vote");
         }

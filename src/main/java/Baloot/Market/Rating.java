@@ -1,14 +1,26 @@
 package Baloot.Market;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity(name = "rating")
 public class Rating {
-    private final String username;
-    private final int commodityId;
+    @Id
+    private String username;
+    @Id
+    private int commodityId;
+    @Column
     private int score;
 
     public Rating(String username, int commodityId, int score) {
         this.username = username;
         this.commodityId = commodityId;
         this.score = score;
+    }
+
+    public Rating() {
+
     }
 
     public void updateScore(int score) {

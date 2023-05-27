@@ -24,6 +24,7 @@
         <mapping class="Baloot.Market.BuyItem" />
         <mapping class="Baloot.Market.Provider" />
         <mapping class="Baloot.Market.Comment" />
+        <mapping class="Baloot.Market.Rating" />
 
     </session-factory>
 </hibernate-configuration>

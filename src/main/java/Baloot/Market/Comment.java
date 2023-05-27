@@ -19,10 +19,10 @@ public class Comment {
     private String comment;
     @Column
     private Date date;
-    private ArrayList<String> upVotes = new ArrayList<>();
-    private ArrayList<String> downVotes = new ArrayList<>();
-
-
+    @OneToMany(mappedBy = "username")
+    private ArrayList<User> upVotes = new ArrayList<>();
+    @OneToMany(mappedBy = "username")
+    private ArrayList<User> downVotes = new ArrayList<>();
     public Comment(int id, String username, int commodityId, String comment, Date date) {
         this.username = username;
         this.commodityId = commodityId;
@@ -35,35 +35,35 @@ public class Comment {
 
     }
 
-    public void upVote(String username) {
-        downVotes.removeIf(user -> user.equals(username));
-        for (String user : upVotes) {
-            if (user.equals(username)) {
+    public void upVote(User username) {
+        downVotes.removeIf(user -> user.getUsername().equals(username.getUsername()));
+        for (User user : upVotes) {
+            if (user.getUsername().equals(username.getUsername())) {
                 return;
             }
         }
         upVotes.add(username);
     }
 
-    public void downVote(String username) {
-        upVotes.removeIf(user -> user.equals(username));
-        for (String user : downVotes) {
-            if (user.equals(username)) {
+    public void downVote(User username) {
+        upVotes.removeIf(user -> user.getUsername().equals(username.getUsername()));
+        for (User user : downVotes) {
+            if (user.getUsername().equals(username.getUsername())) {
                 return;
             }
         }
         downVotes.add(username);
     }
 
-    public void removeVote(String username) {
-        for (String user : upVotes) {
-            if (user.equals(username)) {
+    public void removeVote(User username) {
+        for (User user : upVotes) {
+            if (user.getUsername().equals(username.getUsername())) {
                 upVotes.remove(user);
                 return;
             }
         }
-        for (String user : downVotes) {
-            if (user.equals(username)) {
+        for (User user : downVotes) {
+            if (user.getUsername().equals(username.getUsername())) {
                 downVotes.remove(user);
                 return;
             }

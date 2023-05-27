@@ -1,6 +1,5 @@
 package Baloot.Controller;
 
-import com.mysql.cj.log.Log;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
