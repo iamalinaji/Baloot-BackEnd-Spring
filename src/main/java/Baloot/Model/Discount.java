@@ -1,16 +1,27 @@
 package Baloot.Model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+
 import java.util.ArrayList;
+import java.util.List;
 
+@Entity(name = "discount")
 public class Discount {
-    private final String code;
-    private final int percent;
+    @Id
+    private String code;
+    private int percent;
 
-    private final ArrayList<String> usedUsers = new ArrayList<>();
+    @ManyToMany
+    private final List<User> usedUsers = new ArrayList<>();
 
     public Discount(String code, int percent) {
         this.code = code;
         this.percent = percent;
+    }
+
+    public Discount() {
     }
 
     public String getCode() {
@@ -22,21 +33,21 @@ public class Discount {
     }
 
     public boolean cantUse(String username) {
-        for (String usedUser : usedUsers) {
-            if (usedUser.equals(username)) {
+        for (User usedUser : usedUsers) {
+            if (usedUser.getUsername().equals(username)) {
                 return true;
             }
         }
         return false;
     }
 
-    public void use(String username) throws RuntimeException {
-        for (String usedUser : usedUsers) {
-            if (usedUser.equals(username)) {
+    public void use(User user) throws RuntimeException {
+        for (User usedUser : usedUsers) {
+            if (usedUser.getUsername().equals(user.getUsername())) {
                 throw new RuntimeException("User already used this discount");
             }
         }
-        usedUsers.add(username);
+        usedUsers.add(user);
     }
 
 }

@@ -1,9 +1,6 @@
 package Baloot.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,16 +16,16 @@ public class Commodity {
     private int providerId;
     @Column
     private int price;
-    @OneToMany(targetEntity = Rating.class)
+    @ManyToMany(targetEntity = Rating.class)
     private List<Rating> ratings;
     @Column
     private float rating;
     @Column
     private int inStock;
-    @OneToMany(targetEntity = Category.class)
+    @ManyToMany(targetEntity = Category.class)
     private List<Category> categories;
 
-    @Column
+    @Column(length=1000)
     private String imageUrl;
 
     public Commodity(int id, String name, int providerId, int price, List<Category> categories, float rating, int inStock, String imageUrl) {

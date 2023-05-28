@@ -13,7 +13,7 @@ public class Provider {
     private String name;
     @Column
     private Date registryDate;
-    @Column
+    @Column(length=1000)
     private String imageUrl;
 
     public Provider(int id, String name, Date registryDate, String imageUrl) {

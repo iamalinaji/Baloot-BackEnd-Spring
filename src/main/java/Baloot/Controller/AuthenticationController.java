@@ -1,6 +1,6 @@
 package Baloot.Controller;
 
-import Baloot.Service.MarketManager;
+import Baloot.Service.MarketService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,14 +12,19 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
 
+    private final MarketService marketService;
+
+    public AuthenticationController(MarketService marketService) {
+        this.marketService = marketService;
+    }
+
     @PostMapping("/auth/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String password = request.get("password");
-        MarketManager market = MarketManager.getInstance();
         try {
-            market.login(username,password);
-            int cart = market.getBuyList(username).size();
+            marketService.login(username,password);
+            int cart = marketService.getBuyList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
@@ -38,9 +43,8 @@ public class AuthenticationController {
         String email = request.get("email");
         String address = request.get("address");
         String birthdate = request.get("birthDate");
-        MarketManager market = MarketManager.getInstance();
-        if (market.signup(username, password, email, address, birthdate)) {
-            int cart = market.getBuyList(username).size();
+        if (marketService.signup(username, password, email, address, birthdate)) {
+            int cart = marketService.getBuyList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
@@ -54,14 +58,13 @@ public class AuthenticationController {
 
     @PostMapping("/auth/logout")
     public ResponseEntity<Map<String, Object>> logout() {
-        MarketManager marketManager = MarketManager.getInstance();
-        if (!marketManager.isUserLoggedIn()) {
+        if (!marketService.isUserLoggedIn()) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "User not logged in");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
         }
         else {
-            marketManager.logout();
+            marketService.logout();
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Logout successful");
             return ResponseEntity.ok(responseBody);
@@ -70,10 +73,9 @@ public class AuthenticationController {
 
     @GetMapping("/auth")
     public ResponseEntity<Map<String, Object>> checkLogin() {
-        MarketManager market = MarketManager.getInstance();
-        if (market.isUserLoggedIn()) {
-            String username = market.getLoggedInUser();
-            int cart = market.getBuyList(username).size();
+        if (marketService.isUserLoggedIn()) {
+            String username = marketService.getLoggedInUser();
+            int cart = marketService.getBuyList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);

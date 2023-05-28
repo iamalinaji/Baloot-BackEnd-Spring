@@ -1,6 +1,6 @@
 package Baloot;
 
-import Baloot.Service.MarketManager;
+import Baloot.Service.MarketService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,6 +12,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories("Baloot.Repository")
 public class BalootApplication implements CommandLineRunner {
 
+    private final MarketService marketService;
+
+    public BalootApplication(MarketService marketService) {
+        this.marketService = marketService;
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(BalootApplication.class, args);
     }
@@ -19,8 +25,7 @@ public class BalootApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("--------------------------");
-        MarketManager marketManager = MarketManager.getInstance();
-        marketManager.init();
+        marketService.init();
         System.out.println("MarketManager initialized");
     }
 }

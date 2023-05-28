@@ -1,7 +1,7 @@
 package Baloot.Controller;
 
-import Baloot.Service.MarketManager;
 import Baloot.Model.Provider;
+import Baloot.Service.MarketService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,10 +17,15 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProviderController {
 
+    private final MarketService marketService;
+
+    public ProviderController(MarketService marketService) {
+        this.marketService = marketService;
+    }
+
     @GetMapping("/providers/{provider_id}")
     public ResponseEntity<?> getProviderById(@PathVariable("provider_id") int providerId) {
-        MarketManager market = MarketManager.getInstance();
-        Provider provider = market.getProviderById(providerId);
+        Provider provider = marketService.getProviderById(providerId);
         try {
             return ResponseEntity.ok(provider);
         } catch (Exception e) {
@@ -32,10 +37,9 @@ public class ProviderController {
 
     @GetMapping("/providers/{provider_id}/commodities")
     public ResponseEntity<?> getCommoditiesByProviderId(@PathVariable("provider_id") int providerId) {
-        MarketManager market = MarketManager.getInstance();
         try {
-            market.getCommoditiesByProvider(providerId);
-            return ResponseEntity.ok(market.getCommoditiesByProvider(providerId));
+            marketService.getCommoditiesByProvider(providerId);
+            return ResponseEntity.ok(marketService.getCommoditiesByProvider(providerId));
         } catch (Exception e) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", e.getMessage());
