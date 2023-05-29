@@ -1,11 +1,7 @@
-package Baloot.Market;
+package Baloot.Model;
 
-import org.json.simple.JSONObject;
+import jakarta.persistence.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,18 +16,19 @@ public class Commodity {
     private int providerId;
     @Column
     private int price;
-    @OneToMany
-    private ArrayList<Rating> ratings;
+    @ManyToMany(targetEntity = Rating.class)
+    private List<Rating> ratings;
     @Column
     private float rating;
     @Column
     private int inStock;
-    @OneToMany
-    private ArrayList<Category> categories;
-    @Column
+    @ManyToMany(targetEntity = Category.class)
+    private List<Category> categories;
+
+    @Column(length=1000)
     private String imageUrl;
 
-    public Commodity(int id, String name, int providerId, int price, ArrayList<Category> categories, float rating, int inStock, String imageUrl) {
+    public Commodity(int id, String name, int providerId, int price, List<Category> categories, float rating, int inStock, String imageUrl) {
         this.id = id;
         this.name = name;
         this.providerId = providerId;
@@ -96,7 +93,7 @@ public class Commodity {
         return rating;
     }
 
-    public ArrayList<Rating> getRatings() {
+    public List<Rating> getRatings() {
         return ratings;
     }
 

@@ -1,8 +1,8 @@
-package Baloot.Market;
+package Baloot.Model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import java.util.Date;
 
 @Entity(name = "provider")
@@ -13,7 +13,7 @@ public class Provider {
     private String name;
     @Column
     private Date registryDate;
-    @Column
+    @Column(length=1000)
     private String imageUrl;
 
     public Provider(int id, String name, Date registryDate, String imageUrl) {
