@@ -1,5 +1,7 @@
 package Baloot.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -10,6 +12,7 @@ public class User {
     private String username;
 
     @Column
+    @JsonIgnore
     private String password;
 
     @Column
@@ -24,11 +27,9 @@ public class User {
     @Column
     private int credit;
 
-    @ManyToMany
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private final List<BuyItem> buyList = new ArrayList<>();
-
-    @ManyToMany
-    private final List<BuyItem> purchasedList = new ArrayList<>();
 
     public User(String username, String password, String email, Date birthDay, String address, int credit) {
         this.username = username;
@@ -53,21 +54,9 @@ public class User {
         this.credit = credit;
     }
 
-    public void purchase(int price) {
-        if (buyList.isEmpty()) {
-            throw new RuntimeException("Buy list is empty");
-        }
-        if (credit < price) {
-            throw new RuntimeException("Not enough credit");
-        }
-        credit -= price;
-        purchasedList.addAll(buyList);
-        buyList.clear();
-    }
-
     public void addToBuyList(Commodity commodity) {
         for (BuyItem buyListItem : buyList) {
-            if (buyListItem.getCommodity().getId() == commodity.getId()) {
+            if (buyListItem.getCommodity().getId() == commodity.getId() && !buyListItem.isPurchased()) {
                 buyListItem.setQuantity(buyListItem.getQuantity() + 1);
                 return;
             }
@@ -80,7 +69,7 @@ public class User {
         Iterator<BuyItem> iterator = buyList.iterator();
         while (iterator.hasNext()) {
             BuyItem buyItem = iterator.next();
-            if (buyItem.getCommodity().getId() == commodityId) {
+            if (buyItem.getCommodity().getId() == commodityId && !buyItem.isPurchased()) {
                 iterator.remove();
                 return;
             }
@@ -89,11 +78,11 @@ public class User {
     }
 
     public List<BuyItem> getBuyList() {
-        return Collections.unmodifiableList(buyList);
+        return buyList.stream().filter(buyItem -> !buyItem.isPurchased()).toList();
     }
 
     public List<BuyItem> getPurchasedList() {
-        return Collections.unmodifiableList(purchasedList);
+        return buyList.stream().filter(BuyItem::isPurchased).toList();
     }
 
     public String getUsername() {
@@ -122,5 +111,9 @@ public class User {
 
     public void addCredit(int credit) {
         this.credit += credit;
+    }
+
+    public void setCredit(int i) {
+        this.credit = i;
     }
 }

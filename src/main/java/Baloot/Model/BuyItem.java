@@ -1,5 +1,6 @@
 package Baloot.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -12,20 +13,24 @@ public class BuyItem {
     private Commodity commodity;
 
     @Id
+    @JsonIgnore
     @ManyToOne()
     private User user;
 
     @Column
     private int quantity;
 
+    @Column
+    private boolean isPurchased;
+
     public BuyItem(Commodity commodity, User user, int quantity) {
         this.commodity = commodity;
         this.user = user;
         this.quantity = quantity;
+        this.isPurchased = false;
     }
 
     public BuyItem() {
-
     }
 
     public Commodity getCommodity() {
@@ -66,5 +71,13 @@ public class BuyItem {
     @Override
     public int hashCode() {
         return Objects.hash(commodity, user);
+    }
+
+    public boolean isPurchased() {
+        return isPurchased;
+    }
+
+    public void setPurchased(boolean purchased) {
+        isPurchased = purchased;
     }
 }

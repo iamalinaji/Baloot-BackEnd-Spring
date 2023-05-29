@@ -1,11 +1,10 @@
 package Baloot.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity(name = "comment")
 public class Comment {
@@ -19,10 +18,21 @@ public class Comment {
     private String comment;
     @Column
     private Date date;
-    @OneToMany(mappedBy = "username")
-    private ArrayList<User> upVotes = new ArrayList<>();
-    @OneToMany(mappedBy = "username")
-    private ArrayList<User> downVotes = new ArrayList<>();
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "comment_upvotes",
+            joinColumns = @JoinColumn(name = "comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private final List<User> upVotes = new ArrayList<>();
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "comment_downvotes",
+            joinColumns = @JoinColumn(name = "comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private final List<User> downVotes = new ArrayList<>();
     public Comment(int id, String username, int commodityId, String comment, Date date) {
         this.username = username;
         this.commodityId = commodityId;

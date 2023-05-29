@@ -15,11 +15,11 @@ import java.util.Objects;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-public class userController {
+public class UserController {
 
     private final MarketService marketService;
 
-    public userController(MarketService marketService) {
+    public UserController(MarketService marketService) {
         this.marketService = marketService;
     }
 
@@ -194,7 +194,7 @@ public class userController {
         }
         try {
             String discountCode = (String) requestBody.get("discountCode");
-            if (discountCode == null) {
+            if (Objects.equals(discountCode, "")) {
                 marketService.purchase(username);
             } else {
                 marketService.purchase(username, discountCode);

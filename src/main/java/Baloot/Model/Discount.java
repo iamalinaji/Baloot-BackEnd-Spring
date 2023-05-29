@@ -1,5 +1,6 @@
 package Baloot.Model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
@@ -13,7 +14,7 @@ public class Discount {
     private String code;
     private int percent;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private final List<User> usedUsers = new ArrayList<>();
 
     public Discount(String code, int percent) {

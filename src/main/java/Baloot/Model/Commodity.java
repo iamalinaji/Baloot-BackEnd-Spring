@@ -16,7 +16,7 @@ public class Commodity {
     private int providerId;
     @Column
     private int price;
-    @ManyToMany(targetEntity = Rating.class)
+    @OneToMany(mappedBy = "commodityId", cascade = CascadeType.ALL)
     private List<Rating> ratings;
     @Column
     private float rating;

@@ -7,6 +7,7 @@ import Baloot.Util.JsonParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,15 +27,22 @@ public class MarketService {
     final DiscountRepository discounts;
 
     final CategoryRepository categories;
+
+    final BuyItemRepository buyItems;
+
+    final RatingRepository ratings;
+
     private String loggedInUser = "";
 
-    public MarketService(UserRepository users, ProviderRepository providers, CommodityRepository commodities, CommentRepository comments, DiscountRepository discounts, CategoryRepository categories) {
+    public MarketService(UserRepository users, ProviderRepository providers, CommodityRepository commodities, CommentRepository comments, DiscountRepository discounts, CategoryRepository categories, BuyItemRepository buyItems, RatingRepository ratings) {
         this.users = users;
         this.providers = providers;
         this.commodities = commodities;
         this.comments = comments;
         this.discounts = discounts;
         this.categories = categories;
+        this.buyItems = buyItems;
+        this.ratings = ratings;
     }
 
     public boolean isUserLoggedIn() {
@@ -81,6 +89,7 @@ public class MarketService {
         comments.deleteAll();
         discounts.deleteAll();
         categories.deleteAll();
+        buyItems.deleteAll();
         loggedInUser = "";
     }
 
@@ -424,7 +433,9 @@ public class MarketService {
         if (commodity == null) {
             throw new RuntimeException("Commodity not found");
         }
+        ratings.save(new Rating(username, commodityId, score));
         commodity.addRating(score, username);
+        commodities.save(commodity);
     }
 
     public void addToBuyList(String username, int commodityId) throws RuntimeException {
@@ -439,9 +450,11 @@ public class MarketService {
         if (commodity.getInStock() <= 0) {
             throw new RuntimeException("Out of stoke");
         }
+        buyItems.save(new BuyItem(commodity, user, 1));
         user.addToBuyList(commodity);
     }
 
+    @Transactional
     public void removeFromBuyList(String username, int commodityId) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {
@@ -452,8 +465,10 @@ public class MarketService {
             throw new RuntimeException("Commodity not found");
         }
         user.removeFromBuyList(commodityId);
+        buyItems.deleteBuyItem(commodityId, username);
     }
 
+    @Transactional
     public void decrementBuyItem(String username, int commodityId) throws RuntimeException {
         User user = findUserByUsername(username);
         if (user == null) {
@@ -465,10 +480,13 @@ public class MarketService {
         }
         for (BuyItem buyItem : user.getBuyList()) {
             if (buyItem.getCommodity().getId() == commodityId) {
-                if (buyItem.getQuantity() == 1)
+                if (buyItem.getQuantity() == 1) {
                     removeFromBuyList(username, commodityId);
-                else
+                }
+                else {
                     buyItem.setQuantity(buyItem.getQuantity() - 1);
+                    buyItems.save(buyItem);
+                }
                 return;
             }
         }
@@ -487,6 +505,7 @@ public class MarketService {
         for (BuyItem buyItem : user.getBuyList()) {
             if (buyItem.getCommodity().getId() == commodityId) {
                 buyItem.setQuantity(buyItem.getQuantity() + 1);
+                buyItems.save(buyItem);
                 return;
             }
         }
@@ -520,17 +539,31 @@ public class MarketService {
         for (BuyItem buyItem : buyList) {
             totalPrice += this.getCommodityById(buyItem.getCommodity().getId()).getPrice() * buyItem.getQuantity();
         }
-        totalPrice -= totalPrice * discount.getPercent() / 100;
+        totalPrice *= ((double) (100 - discount.getPercent()) / 100);
         for (BuyItem buyItem : buyList) {
             if (this.getCommodityById(buyItem.getCommodity().getId()).getInStock() < buyItem.getQuantity()) {
                 throw new RuntimeException("Out of stoke");
             }
         }
-        user.purchase(totalPrice);
+        System.out.println(totalPrice);
+        System.out.println(user.getCredit());
+        if (buyList.isEmpty()) {
+            throw new RuntimeException("Buy list is empty");
+        }
+        if (user.getCredit() < totalPrice) {
+            throw new RuntimeException("Not enough credit");
+        }
+        for (BuyItem buyItem : buyList) {
+            buyItem.setPurchased(true);
+            buyItems.save(buyItem);
+        }
+        user.setCredit(user.getCredit() - totalPrice);
+        users.save(user);
         for (BuyItem buyItem : buyList) {
             this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.getQuantity());
         }
         discount.use(user);
+        discounts.save(discount);
     }
 
     public void purchase(String username) throws RuntimeException {
@@ -551,7 +584,15 @@ public class MarketService {
                 throw new RuntimeException("Out of stoke");
             }
         }
-        user.purchase(totalPrice);
+        if (buyList.isEmpty()) {
+            throw new RuntimeException("Buy list is empty");
+        }
+        for (BuyItem buyItem : buyList) {
+            buyItem.setPurchased(true);
+            buyItems.save(buyItem);
+        }
+        user.setCredit(user.getCredit() - totalPrice);
+        users.save(user);
         for (BuyItem buyItem : buyList) {
             this.getCommodityById(buyItem.getCommodity().getId()).pickFromStock(buyItem.getQuantity());
         }
@@ -566,6 +607,7 @@ public class MarketService {
             throw new RuntimeException("Invalid credit");
         }
         user.addCredit(credit);
+        users.save(user);
     }
 
     public void vote(String username, int userVote, int commentId) throws RuntimeException {
@@ -586,6 +628,8 @@ public class MarketService {
         } else {
             throw new RuntimeException("Invalid vote");
         }
+
+        comments.save(comment);
     }
 
     public boolean canUserUseDiscount(String username, String discountCode) throws RuntimeException {
