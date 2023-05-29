@@ -1,6 +1,7 @@
 package Baloot.Model;
 
 import jakarta.persistence.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.*;
 
@@ -101,7 +102,7 @@ public class User {
     }
 
     public boolean checkPassword(String password) {
-        return this.password.equals(password);
+        return BCrypt.checkpw(password,this.password);
     }
 
     public String getEmail() {

@@ -23,7 +23,7 @@ public class AuthenticationController {
         String username = request.get("username");
         String password = request.get("password");
         try {
-            marketService.login(username,password);
+            marketService.login(username, password);
             int cart = marketService.getBuyList(username).size();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
@@ -43,16 +43,25 @@ public class AuthenticationController {
         String email = request.get("email");
         String address = request.get("address");
         String birthdate = request.get("birthDate");
-        if (marketService.signup(username, password, email, address, birthdate)) {
-            int cart = marketService.getBuyList(username).size();
+        if (marketService.getUserByEmail(email) != null) {
             Map<String, Object> response = new HashMap<>();
-            response.put("username", username);
-            response.put("cart", cart);
-            return ResponseEntity.ok(response);
-        } else {
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Invalid date");
+            response.put("message", "This email already exists.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } else if (marketService.getUserByUsername(username) != null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "This username already exists.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } else {
+            try {
+                marketService.signup(username, password, email, address, birthdate);
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "User created successfully.");
+                return ResponseEntity.ok(response);
+            } catch (RuntimeException e) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
         }
     }
 
@@ -62,8 +71,7 @@ public class AuthenticationController {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "User not logged in");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
-        }
-        else {
+        } else {
             marketService.logout();
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Logout successful");
