@@ -6,6 +6,7 @@ import Baloot.Util.HttpRequest;
 import Baloot.Util.JsonParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +63,7 @@ public class MarketService {
         }
     }
 
-    public boolean signup(String username, String password, String email, String address, String birthday) throws RuntimeException {
+    public void signup(String username, String password, String email, String address, String birthday) throws RuntimeException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date birthDate;
         try {
@@ -72,7 +73,6 @@ public class MarketService {
         }
         addUser(username, password, email, birthDate, address, 0);
         loggedInUser = username;
-        return true;
     }
 
     public void logout() {
@@ -236,11 +236,12 @@ public class MarketService {
                 throw new RuntimeException("Invalid character in username");
             }
         }
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         System.out.println("username: " + username);
         User user = findUserByUsername(username);
         if (user == null) {
             System.out.println("user is null");
-            users.save(new User(username, password, email, birthDay, address, credit));
+            users.save(new User(username, hashedPassword, email, birthDay, address, credit));
             return;
         }
         System.out.println("user is not null");
@@ -326,19 +327,11 @@ public class MarketService {
     }
 
     public User getUserByUsername(String username) throws RuntimeException {
-        User user = findUserByUsername(username);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-        return user;
+        return findUserByUsername(username);
     }
 
     public User getUserByEmail(String email) throws RuntimeException {
-        User user = users.findByEmail(email);
-        if (user != null) {
-            return user;
-        }
-        throw new RuntimeException("User not found");
+        return users.findByEmail(email);
     }
 
     public Comment getCommentById(int id) throws RuntimeException {
