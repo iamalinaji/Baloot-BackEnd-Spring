@@ -1,17 +1,27 @@
 package Baloot.Controller;
 
 import Baloot.Service.MarketService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 
+
+import Baloot.Util.JwtGenerator;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
+    @Value("${github.clientId}")
+    private String clientId;
 
+    @Value("${github.clientSecret}")
+    private String clientSecret;
     private final MarketService marketService;
 
     public AuthenticationController(MarketService marketService) {
@@ -25,9 +35,11 @@ public class AuthenticationController {
         try {
             marketService.login(username, password);
             int cart = marketService.getBuyList(username).size();
+            String jwt = JwtGenerator.generateJwt();
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
+            response.put("jwt",jwt);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             Map<String, Object> response = new HashMap<>();
@@ -92,6 +104,39 @@ public class AuthenticationController {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User is not logged in");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
+    @GetMapping("/auth/callback")
+    public ResponseEntity<Map<String, Object>> handleCallback(@RequestParam("code") String code) {
+
+        String accessTokenUrl = "https://github.com/login/oauth/access_token";
+        String accessTokenParams = "?client_id=" + clientId + "&client_secret=" + clientSecret + "&code=" + code;
+        String apiUrl = accessTokenUrl+accessTokenParams;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        RestTemplate restTemplate = new RestTemplate();
+        // Send the GET request
+        ResponseEntity<String> response = restTemplate.exchange(
+                apiUrl,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+        String authResponse = response.getBody();
+        System.out.println(authResponse);
+        try {
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(authResponse);
+            String accessToken = (String) jsonObject.get("access_token");
+            System.out.println(accessToken);
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
+        catch (Exception e)
+        {
+            Map<String, Object> controllerResponse = new HashMap<>();
+            controllerResponse.put("accessToken","Error in receiving information from github.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(controllerResponse);
         }
     }
 
