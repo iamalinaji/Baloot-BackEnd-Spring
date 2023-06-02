@@ -23,6 +23,7 @@ public class AuthenticationController {
 
     @Value("${github.clientSecret}")
     private String clientSecret;
+
     private final MarketService marketService;
     private GithubOauth githubUtil;
 
@@ -38,7 +39,7 @@ public class AuthenticationController {
         try {
             marketService.login(username, password);
             int cart = marketService.getBuyList(username).size();
-            String jwt = JwtGenerator.generateJwt();
+            String jwt = JwtGenerator.generateJwt(username);
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
@@ -134,6 +135,7 @@ public class AuthenticationController {
             JSONObject jsonObject = (JSONObject) jsonParser.parse(authResponse);
             String accessToken = (String) jsonObject.get("access_token");
             String username = githubUtil.getUserDetails(accessToken);
+            String jwt = JwtGenerator.generateJwt(username);
             return ResponseEntity.status(HttpStatus.OK).body(null);
         } catch (Exception e) {
             Map<String, Object> controllerResponse = new HashMap<>();
