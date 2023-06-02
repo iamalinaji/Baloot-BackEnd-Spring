@@ -14,10 +14,11 @@ import java.util.Map;
 
 
 import Baloot.Util.JwtGenerator;
-import Baloot.Util.JwtGenerator;
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
+    @Value("${secretKey}")
+    private String secretKey;
     @Value("${github.clientId}")
     private String clientId;
 
@@ -25,7 +26,7 @@ public class AuthenticationController {
     private String clientSecret;
 
     private final MarketService marketService;
-    private GithubOauth githubUtil;
+    private final GithubOauth githubUtil;
 
     public AuthenticationController(MarketService marketService, GithubOauth githubUtil) {
         this.marketService = marketService;
@@ -39,12 +40,12 @@ public class AuthenticationController {
         try {
             marketService.login(username, password);
             int cart = marketService.getBuyList(username).size();
-            String jwt = JwtGenerator.generateJwt(username);
+            String jwt = JwtGenerator.generateJwt(username,secretKey);
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
             response.put("jwt", jwt);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (RuntimeException e) {
             Map<String, Object> response = new HashMap<>();
             response.put("message", e.getMessage());
@@ -111,9 +112,9 @@ public class AuthenticationController {
         }
     }
 
-    @GetMapping("/auth/callback")
-    public ResponseEntity<Map<String, Object>> handleCallback(@RequestParam("code") String code) {
-
+    @PostMapping("/auth/callback")
+    public ResponseEntity<Map<String, Object>> handleCallback(@RequestBody Map<String, String> request) {
+        String code = request.get("code");
         String accessTokenUrl = "https://github.com/login/oauth/access_token";
         String accessTokenParams = "?client_id=" + clientId + "&client_secret=" + clientSecret + "&code=" + code;
         String apiUrl = accessTokenUrl + accessTokenParams;
@@ -122,21 +123,22 @@ public class AuthenticationController {
         HttpEntity<?> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
         // Send the GET request
-        ResponseEntity<String> response = restTemplate.exchange(
+        ResponseEntity<String> apiResponse = restTemplate.exchange(
                 apiUrl,
                 HttpMethod.GET,
                 entity,
                 String.class
         );
-        String authResponse = response.getBody();
-        System.out.println(authResponse);
+        String authResponse = apiResponse.getBody();
         try {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(authResponse);
             String accessToken = (String) jsonObject.get("access_token");
             String username = githubUtil.getUserDetails(accessToken);
-            String jwt = JwtGenerator.generateJwt(username);
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            Map<String, Object> response = new HashMap<>();
+            String jwt = JwtGenerator.generateJwt(username,secretKey);
+            response.put("jwt",jwt);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
             Map<String, Object> controllerResponse = new HashMap<>();
             controllerResponse.put("message", e.getMessage());

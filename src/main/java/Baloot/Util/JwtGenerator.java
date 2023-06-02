@@ -6,9 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.Date;
 
 public class JwtGenerator {
-    @Value("${secretKey}")
-    private static String secretKey;
-    public static String generateJwt(String username) {
+
+    public static String generateJwt(String username,String secretKey) {
 
         // Set the expiration time
         Date expiration = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 1 day
