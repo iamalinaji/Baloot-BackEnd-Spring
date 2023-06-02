@@ -1,12 +1,8 @@
 package Baloot.Util;
-
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-
 import java.util.Date;
-
 import io.jsonwebtoken.security.Keys;
-
 import java.security.Key;
 
 public class JwtGenerator {

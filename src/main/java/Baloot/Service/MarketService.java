@@ -219,7 +219,6 @@ public class MarketService {
             return null;
         }
     }
-
     public void addUser(String username, String password, String email, Date birthDay, String address, int credit) throws RuntimeException {
         CharSequence[] invalidChars = {" ", "‌", "!", "@", "#", "$", "%", "^", "&", "*"};
         for (CharSequence invalidChar : invalidChars) {
