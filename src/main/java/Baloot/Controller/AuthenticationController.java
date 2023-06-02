@@ -1,6 +1,7 @@
 package Baloot.Controller;
 
 import Baloot.Service.MarketService;
+import Baloot.Util.GithubOauth;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 
 import Baloot.Util.JwtGenerator;
-
+import Baloot.Util.JwtGenerator;
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
@@ -23,9 +24,11 @@ public class AuthenticationController {
     @Value("${github.clientSecret}")
     private String clientSecret;
     private final MarketService marketService;
+    private GithubOauth githubUtil;
 
-    public AuthenticationController(MarketService marketService) {
+    public AuthenticationController(MarketService marketService, GithubOauth githubUtil) {
         this.marketService = marketService;
+        this.githubUtil = githubUtil;
     }
 
     @PostMapping("/auth/login")
@@ -39,7 +42,7 @@ public class AuthenticationController {
             Map<String, Object> response = new HashMap<>();
             response.put("username", username);
             response.put("cart", cart);
-            response.put("jwt",jwt);
+            response.put("jwt", jwt);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             Map<String, Object> response = new HashMap<>();
@@ -106,12 +109,13 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
+
     @GetMapping("/auth/callback")
     public ResponseEntity<Map<String, Object>> handleCallback(@RequestParam("code") String code) {
 
         String accessTokenUrl = "https://github.com/login/oauth/access_token";
         String accessTokenParams = "?client_id=" + clientId + "&client_secret=" + clientSecret + "&code=" + code;
-        String apiUrl = accessTokenUrl+accessTokenParams;
+        String apiUrl = accessTokenUrl + accessTokenParams;
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         HttpEntity<?> entity = new HttpEntity<>(headers);
@@ -129,13 +133,11 @@ public class AuthenticationController {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(authResponse);
             String accessToken = (String) jsonObject.get("access_token");
-            System.out.println(accessToken);
+            String username = githubUtil.getUserDetails(accessToken);
             return ResponseEntity.status(HttpStatus.OK).body(null);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Map<String, Object> controllerResponse = new HashMap<>();
-            controllerResponse.put("accessToken","Error in receiving information from github.");
+            controllerResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(controllerResponse);
         }
     }
