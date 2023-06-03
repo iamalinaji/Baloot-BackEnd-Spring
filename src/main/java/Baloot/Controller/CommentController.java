@@ -2,6 +2,7 @@ package Baloot.Controller;
 
 
 import Baloot.Service.MarketService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,6 @@ import java.util.Map;
 
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class CommentController {
 
     private final MarketService marketService;
@@ -45,10 +45,10 @@ public class CommentController {
     }
 
     @PostMapping("/comments")
-    public ResponseEntity<?> addComment(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> addComment(@RequestBody Map<String, String> request, HttpServletRequest httpServletRequest) {
+        String loggedInUser = httpServletRequest.getAttribute("username").toString();
         int commodityId = Integer.parseInt(request.get("commodityId"));
         String comment = request.get("comment");
-        String loggedInUser = marketService.getLoggedInUser();
         try {
             marketService.addComment(loggedInUser, commodityId, comment);
             Map<String, Object> responseBody = new HashMap<>();
@@ -62,9 +62,9 @@ public class CommentController {
     }
 
     @PostMapping("/comments/like")
-    public ResponseEntity<?> likeComment(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> likeComment(@RequestBody Map<String, String> request, HttpServletRequest httpServletRequest) {
+        String loggedInUser = httpServletRequest.getAttribute("username").toString();
         int id = Integer.parseInt(request.get("id"));
-        String loggedInUser = marketService.getLoggedInUser();
         try {
             marketService.vote(loggedInUser,1, id);
             Map<String, Object> responseBody = new HashMap<>();
@@ -78,9 +78,9 @@ public class CommentController {
     }
 
     @PostMapping("/comments/dislike")
-    public ResponseEntity<?> dislikeComment(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> dislikeComment(@RequestBody Map<String, String> request, HttpServletRequest httpServletRequest) {
+        String loggedInUser = httpServletRequest.getAttribute("username").toString();
         int id = Integer.parseInt(request.get("id"));
-        String loggedInUser = marketService.getLoggedInUser();
         try {
             marketService.vote(loggedInUser,-1, id);
             Map<String, Object> responseBody = new HashMap<>();

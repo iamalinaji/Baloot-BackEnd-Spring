@@ -2,6 +2,7 @@ package Baloot.Controller;
 
 import Baloot.Model.Commodity;
 import Baloot.Service.MarketService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,6 @@ import java.util.Map;
 
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class CommodityController {
 
     private final MarketService marketService;
@@ -49,9 +49,12 @@ public class CommodityController {
     }
 
     @PostMapping("/commodities/{commodity_id}/rate")
-    public ResponseEntity<?> rateCommodity(@PathVariable int commodity_id, @RequestBody JSONObject requestBody) {
+    public ResponseEntity<?> rateCommodity(@PathVariable int commodity_id, @RequestBody JSONObject requestBody, HttpServletRequest request) {
         int rate = (int) requestBody.get("rating");
-        String username = marketService.getLoggedInUser();
+
+        // Retrieve the username from the request attribute
+        String username = (String) request.getAttribute("username");
+
         try {
             marketService.rateCommodity(username, commodity_id, rate);
             Map<String, Object> responseBody = new HashMap<>();

@@ -33,8 +33,6 @@ public class MarketService {
 
     final RatingRepository ratings;
 
-    private String loggedInUser = "";
-
     public MarketService(UserRepository users, ProviderRepository providers, CommodityRepository commodities, CommentRepository comments, DiscountRepository discounts, CategoryRepository categories, BuyItemRepository buyItems, RatingRepository ratings) {
         this.users = users;
         this.providers = providers;
@@ -46,42 +44,6 @@ public class MarketService {
         this.ratings = ratings;
     }
 
-    public boolean isUserLoggedIn() {
-        return !loggedInUser.equals("");
-    }
-
-    public String getLoggedInUser() {
-        return loggedInUser;
-    }
-
-    public void login(String username, String password) throws RuntimeException {
-        User user = findUserByUsername(username);
-        if (user == null || !user.checkPassword(password)) {
-            throw new RuntimeException("Invalid username or password");
-        } else {
-            loggedInUser = username;
-        }
-    }
-
-    public void signup(String username, String password, String email, String address, String birthday) throws RuntimeException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date birthDate;
-        try {
-            birthDate = dateFormat.parse(birthday);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-        addUser(username, password, email, birthDate, address, 0);
-        loggedInUser = username;
-    }
-
-    public void logout() {
-        if (loggedInUser.equals("")) {
-            throw new RuntimeException("No user is logged in");
-        }
-        loggedInUser = "";
-    }
-
     public void clear() {
         users.deleteAll();
         providers.deleteAll();
@@ -90,7 +52,6 @@ public class MarketService {
         discounts.deleteAll();
         categories.deleteAll();
         buyItems.deleteAll();
-        loggedInUser = "";
     }
 
     public void init() {
@@ -181,6 +142,28 @@ public class MarketService {
         }
     }
 
+    public void login(String username, String password) throws RuntimeException {
+        User user = findUserByUsername(username);
+        if (user == null)
+            throw new RuntimeException("Username not found");
+        if (!user.checkPassword(password))
+            throw new RuntimeException("Wrong password");
+    }
+
+    public void signup(String username, String password, String email, String birthdate, String address) throws RuntimeException {
+        if (findUserByUsername(username) != null)
+            throw new RuntimeException("Username already exists");
+        if (users.findByEmail(email) != null)
+            throw new RuntimeException("Email already exists");
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date birthDate = dateFormat.parse(birthdate);
+            addUser(username, password, email, birthDate, address, 0);
+        } catch (ParseException e) {
+            throw new RuntimeException("Invalid date format");
+        }
+    }
+
     private User findUserByUsername(String username) {
         try {
             return users.findById(username).get();
@@ -228,6 +211,7 @@ public class MarketService {
             return null;
         }
     }
+
     public void addUser(String username, String password, String email, Date birthDay, String address, int credit) throws RuntimeException {
         CharSequence[] invalidChars = {" ", "‌", "!", "@", "#", "$", "%", "^", "&", "*"};
         for (CharSequence invalidChar : invalidChars) {
@@ -236,15 +220,7 @@ public class MarketService {
             }
         }
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        System.out.println("username: " + username);
-        User user = findUserByUsername(username);
-        if (user == null) {
-            System.out.println("user is null");
-            users.save(new User(username, hashedPassword, email, birthDay, address, credit));
-            return;
-        }
-        System.out.println("user is not null");
-        user.updateUser(password, email, birthDay, address, credit);
+        users.save(new User(username, hashedPassword, email, birthDay, address, credit));
     }
 
     public void addProvider(int id, String name, Date registryDate, String imageUrl) throws RuntimeException {
@@ -326,11 +302,19 @@ public class MarketService {
     }
 
     public User getUserByUsername(String username) throws RuntimeException {
-        return findUserByUsername(username);
+        User user = findUserByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return user;
     }
 
     public User getUserByEmail(String email) throws RuntimeException {
-        return users.findByEmail(email);
+        User user = users.findByEmail(email);
+        if (user != null) {
+            return user;
+        }
+        throw new RuntimeException("User not found");
     }
 
     public Comment getCommentById(int id) throws RuntimeException {

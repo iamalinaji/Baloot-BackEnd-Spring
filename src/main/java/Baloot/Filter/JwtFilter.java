@@ -22,9 +22,9 @@ public class JwtFilter extends OncePerRequestFilter {
     private String secretKey;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        return requestURI.startsWith("/auth") || requestURI.startsWith("/auth/");
+        return request.getMethod().equals("OPTIONS") || requestURI.equals("/auth/login") || requestURI.equals("/auth/signup") || requestURI.equals("/auth/github");
     }
 
 
@@ -34,7 +34,10 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = extractJwtToken(request);
 
         // Validate the JWT token
-        if (isValidJwtToken(jwt,secretKey)) {
+        if (isValidJwtToken(jwt, secretKey)) {
+            String username = getUsernameFromToken(jwt, secretKey);
+            // Store the username in the request attributes
+            request.setAttribute("username", username);
             // Proceed with the request
             filterChain.doFilter(request, response);
         } else {
@@ -47,9 +50,9 @@ public class JwtFilter extends OncePerRequestFilter {
         return request.getHeader("Authorization");
     }
 
-    private boolean isValidJwtToken(String jwt,String secretKey) {
+    private boolean isValidJwtToken(String jwt, String secretKey) {
         try {
-            Jws<Claims> claimsJws = Jwts.parserBuilder()
+            Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(jwt);
@@ -60,5 +63,9 @@ public class JwtFilter extends OncePerRequestFilter {
             // The JWT signature is invalid or other validation error occurred
             return false;
         }
+    }
+
+    public String getUsernameFromToken(String token, String secretKey) {
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     }
 }

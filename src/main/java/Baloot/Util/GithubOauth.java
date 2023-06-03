@@ -22,7 +22,11 @@ import java.util.Date;
 public class GithubOauth {
     private static final String GITHUB_USER_API_URL = "https://api.github.com/user";
     private final MarketService marketService;
-    public GithubOauth(MarketService marketService){this.marketService=marketService;}
+
+    public GithubOauth(MarketService marketService) {
+        this.marketService = marketService;
+    }
+
     public String getUserDetails(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -31,19 +35,19 @@ public class GithubOauth {
         RequestEntity<Void> request = new RequestEntity<>(headers, HttpMethod.GET, URI.create(GITHUB_USER_API_URL));
         ResponseEntity<GithubUser> response = restTemplate.exchange(request, GithubUser.class);
         GithubUser user = response.getBody();
-        if (response.getStatusCode().is2xxSuccessful()) {
-            User balootUser =marketService.getUserByUsername(user.username);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");;
-            LocalDateTime dateTime = LocalDateTime.parse(user.createdAt,formatter);
-            LocalDateTime newDateTime = dateTime.minusYears(18);
-            Date birthDate = Date.from(newDateTime.atZone(ZoneId.systemDefault()).toInstant());
-            if(balootUser!=null) {
+        if (response.getStatusCode().is2xxSuccessful() && user != null) {
+            User balootUser = marketService.getUserByUsername(user.username);
+            if (balootUser != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                LocalDateTime dateTime = LocalDateTime.parse(user.createdAt, formatter);
+                LocalDateTime newDateTime = dateTime.minusYears(18);
+                Date birthDate = Date.from(newDateTime.atZone(ZoneId.systemDefault()).toInstant());
                 int credit = balootUser.getCredit();
-                balootUser.updateUser(null, user.email,birthDate, user.address, credit);
+                balootUser.updateUser(null, user.email, birthDate, user.address, credit);
                 return balootUser.getUsername();
-            }
-            else {
-                marketService.addUser(user.username,null,user.email,birthDate, user.address,0);
+            } else {
+                String birthDate = user.createdAt.substring(0, 10);
+                marketService.signup(user.username, null, user.email, birthDate, user.address);
                 return user.username;
             }
         } else {

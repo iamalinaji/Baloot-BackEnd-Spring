@@ -2,6 +2,7 @@ package Baloot.Controller;
 
 import Baloot.Model.BuyItem;
 import Baloot.Service.MarketService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import java.util.Objects;
 
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     private final MarketService marketService;
@@ -24,12 +24,9 @@ public class UserController {
     }
 
     @GetMapping("/users/{username}")
-    public ResponseEntity<?> getUser(@PathVariable("username") String username) {
-        if (!marketService.isUserLoggedIn()) {
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("message", "User not logged in");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
-        } else if (!Objects.equals(username, marketService.getLoggedInUser())) {
+    public ResponseEntity<?> getUser(@PathVariable("username") String username, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
+        if (!Objects.equals(username, loggedInUser)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseBody);
@@ -39,8 +36,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{username}/credit")
-    public ResponseEntity<?> getUserCredit(@PathVariable("username") String username) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> getUserCredit(@PathVariable("username") String username, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -50,8 +47,8 @@ public class UserController {
     }
 
     @PostMapping("/users/{username}/credit")
-    public ResponseEntity<?> addCredit(@PathVariable("username") String username, @RequestBody JSONObject requestBody) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> addCredit(@PathVariable("username") String username, @RequestBody JSONObject requestBody, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -72,8 +69,8 @@ public class UserController {
     }
 
     @PostMapping("/users/{username}/cart")
-    public ResponseEntity<?> addToCart(@PathVariable("username") String username, @RequestBody JSONObject requestBody) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> addToCart(@PathVariable("username") String username, @RequestBody JSONObject requestBody, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -93,8 +90,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{username}/cart")
-    public ResponseEntity<?> getCarts(@PathVariable("username") String username) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> getCarts(@PathVariable("username") String username, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -105,8 +102,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{username}/bought")
-    public ResponseEntity<?> getBought(@PathVariable("username") String username) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> getBought(@PathVariable("username") String username, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -117,8 +114,8 @@ public class UserController {
     }
 
     @PostMapping("users/{username}/cart/increment/{itemId}")
-    public ResponseEntity<?> increaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> increaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -137,8 +134,8 @@ public class UserController {
     }
 
     @PostMapping("users/{username}/cart/decrement/{itemId}")
-    public ResponseEntity<?> decreaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> decreaseQuantity(@PathVariable("username") String username, @PathVariable("itemId") int itemId, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -157,8 +154,8 @@ public class UserController {
     }
 
     @PostMapping("users/{username}/discount")
-    public ResponseEntity<?> useDiscountCode(@PathVariable("username") String username, @RequestBody JSONObject requestBody) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> useDiscountCode(@PathVariable("username") String username, @RequestBody JSONObject requestBody, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
@@ -185,8 +182,8 @@ public class UserController {
 
 
     @PostMapping("users/{username}/cart/purchase")
-    public ResponseEntity<?> purchase(@PathVariable("username") String username, @RequestBody JSONObject requestBody) {
-        String loggedInUser = marketService.getLoggedInUser();
+    public ResponseEntity<?> purchase(@PathVariable("username") String username, @RequestBody JSONObject requestBody, HttpServletRequest request) {
+        String loggedInUser = request.getAttribute("username").toString();
         if (!Objects.equals(loggedInUser, username)) {
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("message", "Access denied!");
