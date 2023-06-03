@@ -23,6 +23,14 @@ public class JwtGenerator {
                 .compact();
         return jwt;
     }
+    public boolean validateToken(String token,String secretKey) {
+        try {
+            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 
 }
 
